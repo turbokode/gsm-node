@@ -161,22 +161,19 @@ async function processNextMessage() {
     console.log("USER MESSAGE: ", newUserMessage);
 
     try {
-      const response = await api.post<{
-        phoneNumber: string;
-        content: string;
-      }>("/system_gate_way", {
+      const response = await api.post("/system_gate_way", {
         phoneNumber: newUserMessage.phoneNumber,
         content: newUserMessage.content,
       });
 
-      if (isStringEmpty(response.data.phoneNumber)) return;
+      // if (isStringEmpty(response.data)) return;
 
-      const sendStatus = await sendSMS(
-        response.data.phoneNumber,
-        response.data.content
-      );
+      // const sendStatus = await sendSMS(
+      //   response.data.phoneNumber,
+      //   response.data.content
+      // );
 
-      console.log("Message Enviada: ", sendStatus);
+      console.log("Message Enviada: ", response.data);
     } catch (error) {
       const message =
         "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
