@@ -1,7 +1,36 @@
+import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
+import { api } from "./api/server";
 import { isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
+
+const app = express();
+const serverPort = 3001;
+
+app.use(express.json());
+
+app.post("send_sms", async (req, res) => {
+  const { phoneNumber, message } = req.body;
+
+  try {
+    if (isStringEmpty(phoneNumber)) throw new Error("Phone number is empty!");
+    if (isStringEmpty(message)) throw new Error("Message content is empty!");
+
+    const sendStatus = await sendSMS(phoneNumber, message);
+
+    if (!sendStatus) throw new Error("Failed when try to send SMS!");
+
+    res.json({ message: "success" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err });
+  }
+});
+
+app.listen(serverPort, () => {
+  console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`);
+});
 
 // Create a port
 const port = new SerialPort({ path: "/dev/serial0", baudRate: 115200 });
@@ -131,18 +160,29 @@ async function processNextMessage() {
   if (!isStringEmpty(newUserMessage.phoneNumber)) {
     console.log("USER MESSAGE: ", newUserMessage);
 
-    const sendStatus = await sendSMS(
-      newUserMessage.phoneNumber,
-      newUserMessage.content
-    );
+    try {
+      const response = await api.post<{
+        phoneNumber: string;
+        content: string;
+      }>("/system_gate_way", {
+        phoneNumber: newUserMessage.phoneNumber,
+        content: newUserMessage.content,
+      });
 
-    console.log("Message Enviada: ", sendStatus);
-    // const systemGateWay = new SystemGateway({
-    //   content: newUserMessage.content,
-    //   phoneNumber: newUserMessage.phoneNumber,
-    // });
+      if (isStringEmpty(response.data.phoneNumber)) return;
 
-    // await systemGateWay.exec();
+      const sendStatus = await sendSMS(
+        response.data.phoneNumber,
+        response.data.content
+      );
+
+      console.log("Message Enviada: ", sendStatus);
+    } catch (error) {
+      const message =
+        "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
+
+      await sendSMS(newUserMessage.phoneNumber, message);
+    }
   }
 
   await getUnreadMessages();
@@ -172,7 +212,6 @@ async function sendSMS(
     const message = removeAccents(msg);
     const endMessageIndicator = Buffer.from([26]);
 
-    // port.write(`AT+CMGDA="DEL SENT"\r\n`);
     const sendIDRegex = /\+CMGS: (\d+)/;
 
     let sendExecuted = false;
@@ -186,6 +225,7 @@ async function sendSMS(
         isSendingSMS = false;
 
         callback && callback();
+        port.write(`AT+CMGDA="DEL SENT"\r\n`);
         resolve(true);
       } else if (data.includes("ERROR")) {
         console.error("Erro no envio da mensagem:", data);
