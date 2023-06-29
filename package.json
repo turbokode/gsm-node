@@ -1,0 +1,19 @@
+{
+  "name": "gsm-node",
+  "version": "1.0.0",
+  "description": "sistema de comunicação com o GSM",
+  "main": "./dist/src/index.js",
+  "author": "Dario Pacule",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx nodemon ./src/index.ts"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.5"
+  },
+  "dependencies": {
+    "serialport": "^11.0.0"
+  }
+}
