@@ -10,7 +10,7 @@ const serverPort = 3001;
 
 app.use(express.json());
 
-app.post("send_sms", async (req, res) => {
+app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
 
   try {
@@ -175,6 +175,7 @@ async function processNextMessage() {
 
       console.log("Message Enviada: ", response.data);
     } catch (error) {
+      console.log("POST ERROR: ", error);
       const message =
         "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
 
