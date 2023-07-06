@@ -1,8 +1,7 @@
 const validStringRegex = /[\S\s]+[\S]+/;
 
 export function isStringEmpty(str?: string | (() => string)): boolean {
-  if (validStringRegex.test(str as string)) return false;
-  return true;
+  return !validStringRegex.test(str as string);
 }
 
 export function isNumberEmpty(num: unknown): boolean {
