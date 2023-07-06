@@ -37,6 +37,24 @@ app.post("/send_sms", async (req, res) => {
   }
 });
 
+app.get("/check_sys", async (req, res) => {
+  let status = { server: true, gsm: false };
+
+  try {
+    const response = await executeCommand("AT");
+    if (response.length > 0) status.gsm = true;
+
+    res.json({ message: "success", data: status });
+  } catch (err) {
+    console.log("Error when try to send SMS: ", err);
+    /**
+     * Geral log do erro e enviar uma notificação para o admin!
+     */
+
+    res.status(500).json({ message: err });
+  }
+});
+
 app.listen(serverPort, () => {
   console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`);
 });
@@ -110,9 +128,17 @@ port.on("error", (err) => {
 });
 
 function executeCommand(command: string): Promise<string[]> {
+  console.log("EXECUTING: ", command);
+
   return new Promise((resolve, reject) => {
     let responses: string[] = [];
     isExecutingCommand = true;
+
+    const timeOut = setTimeout(() => {
+      clearTimeout(timeOut);
+      console.log("The GSM module is not responding!");
+      resolve([]);
+    }, 5000);
 
     port.write(`${command}\r\n`, async (err) => {
       if (err) {
@@ -126,7 +152,11 @@ function executeCommand(command: string): Promise<string[]> {
     const onData = async (data: string) => {
       responses.push(data);
 
-      if (data.replace("\r", "") === command) commandReceived = true;
+      if (data.replace("\r", "") === command) {
+        clearTimeout(timeOut);
+
+        commandReceived = true;
+      }
 
       if (commandReceived && data === "OK") {
         /**
@@ -306,7 +336,6 @@ async function sendSMS(
 }
 
 async function gsmConfig() {
-  console.log("CONFIG");
   await executeCommand("AT");
   await executeCommand("AT+CMGF=1");
   await executeCommand(`AT+CMGDA="DEL READ"`);
