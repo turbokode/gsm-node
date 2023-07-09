@@ -67,9 +67,13 @@ const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 let messageQueue = new Array<string>();
 let isSendingSMS = false;
 let isExecutingCommand = false;
+let responses: string[] = [];
+let executingCommand = "";
+let commandReceived = false;
+let executeCommandCallBack: undefined | ((res: string[]) => void) = undefined;
 
 setInterval(async () => {
-  if (!isSendingSMS && isExecutingCommand) {
+  if (!isSendingSMS && !isExecutingCommand) {
     await getUnreadMessages();
   }
 }, 30000);
@@ -84,35 +88,37 @@ port.on("open", async () => {
 });
 
 async function getUnreadMessages(): Promise<string[]> {
-  const unreadMessages = await new Promise<string[]>((resolve, reject) => {
-    let unreadMessages = new Array<string>();
-    let commandReceived = false;
-    const selectUnreadMessageRegex = /\+CMGL: (\d+),"REC UNREAD"/;
+  const returnedUnreadMessages = await new Promise<string[]>(
+    (resolve, reject) => {
+      let unreadMessages = new Array<string>();
+      let commandReceived = false;
+      const selectUnreadMessageRegex = /\+CMGL: (\d+),"REC UNREAD"/;
 
-    port.write('AT+CMGL="REC UNREAD"\r\n', async (err) => {
-      if (err) {
-        reject([]);
+      port.write('AT+CMGL="REC UNREAD"\r\n', async (err) => {
+        if (err) {
+          reject([]);
 
-        await resetGSM(port, parser, gsmConfig);
-      }
-    });
+          await resetGSM(port, parser, gsmConfig);
+        }
+      });
 
-    const onData = (data: string) => {
-      if (data.replace("\r", "") === 'AT+CMGL="REC UNREAD"')
-        commandReceived = true;
+      const onData = (data: string) => {
+        if (data.replace("\r", "") === 'AT+CMGL="REC UNREAD"')
+          commandReceived = true;
 
-      if (selectUnreadMessageRegex.test(data)) {
-        unreadMessages.push(data);
-      } else if (data === "OK" && commandReceived) {
-        parser.removeListener("data", onData);
-        resolve(unreadMessages);
-      }
-    };
+        if (selectUnreadMessageRegex.test(data)) {
+          unreadMessages.push(data);
+        } else if (data === "OK" && commandReceived) {
+          parser.removeListener("data", onData);
+          resolve(unreadMessages);
+        }
+      };
 
-    parser.on("data", onData);
-  });
+      parser.on("data", onData);
+    }
+  );
 
-  const queues = unreadMessages.map((message: string) => {
+  const queues = returnedUnreadMessages.map((message: string) => {
     const splited = message.split(",");
     return splited[0].replace("+CMGL: ", '+CMTI: "SM",');
   });
@@ -120,7 +126,7 @@ async function getUnreadMessages(): Promise<string[]> {
 
   processNextMessage();
 
-  return unreadMessages;
+  return returnedUnreadMessages;
 }
 
 port.on("error", (err) => {
@@ -129,66 +135,40 @@ port.on("error", (err) => {
 
 function executeCommand(command: string): Promise<string[]> {
   console.log("EXECUTING: ", command);
+  isExecutingCommand = true;
+  executingCommand = command;
+  executeCommandCallBack = undefined;
 
   return new Promise((resolve, reject) => {
-    let responses: string[] = [];
-    isExecutingCommand = true;
-
     const timeOut = setTimeout(() => {
       clearTimeout(timeOut);
       console.log("The GSM module is not responding!");
       resolve([]);
-    }, 5000);
+    }, 65000);
 
     port.write(`${command}\r\n`, async (err) => {
       if (err) {
-        reject(false);
-        await resetGSM(port, parser, gsmConfig);
         console.log(`Error when execute ${command}: ${err.message}`);
+        clearTimeout(timeOut);
+        await resetGSM(port, parser, gsmConfig);
+        reject(false);
       }
     });
 
-    let commandReceived = false;
-    const onData = async (data: string) => {
-      responses.push(data);
-
-      if (data.replace("\r", "") === command) {
-        clearTimeout(timeOut);
-
-        commandReceived = true;
-      }
-
-      if (commandReceived && data === "OK") {
-        /**
-         * Remove command form DB
-         */
-        console.log(`${command}: Success`);
-        parser.removeListener("data", onData);
-        isExecutingCommand = false;
-
-        resolve(responses);
-      }
-      if (commandReceived && data === "ERROR") {
-        console.log(`${command}: Error`);
-        parser.removeListener("data", onData);
-        isExecutingCommand = false;
-
-        await resetGSM(port, parser, gsmConfig);
-
-        resolve([]);
-      }
+    executeCommandCallBack = (res: string[]) => {
+      clearTimeout(timeOut);
+      resolve(res);
     };
-
-    parser.on("data", onData);
   });
 }
 
 parser.on("data", (data) => {
   console.log("GSM MESSAGE: ", data);
-  if (data.startsWith("+CMTI:")) smsCommunicationManager(data);
+  if (isExecutingCommand) onExecuteCommand(data);
+  if (data.startsWith("+CMTI:")) newSMS(data);
 });
 
-function smsCommunicationManager(gsmMessage: string) {
+function newSMS(gsmMessage: string) {
   console.log("Nova mensagem recebida: ", gsmMessage);
 
   if (messageQueue.length > 0) messageQueue.push(gsmMessage);
@@ -273,11 +253,7 @@ async function getNewUserMessage(line: string) {
   return userMessage;
 }
 
-async function sendSMS(
-  phoneNumber: string,
-  msg: string,
-  callback?: () => void
-) {
+function sendSMS(phoneNumber: string, msg: string, callback?: () => void) {
   isSendingSMS = true;
 
   return new Promise((resolve, reject) => {
@@ -291,7 +267,7 @@ async function sendSMS(
       console.log("SEND: ", data);
       if (sendIDRegex.test(data)) sendCommandExecuted = true;
 
-      if (sendCommandExecuted && data.includes("OK")) {
+      if (sendCommandExecuted && data === "OK") {
         console.log("Mensagem enviada com sucesso!");
         parser.removeListener("data", onData);
         isSendingSMS = false;
@@ -341,3 +317,31 @@ async function gsmConfig() {
   await executeCommand(`AT+CMGDA="DEL READ"`);
   await executeCommand(`AT+CSCS="8859-1"`);
 }
+
+const onExecuteCommand = async (data: string) => {
+  if (data.replace("\r", "") === executingCommand) commandReceived = true;
+
+  if (commandReceived) responses.push(data);
+
+  if (commandReceived && data === "OK") {
+    /**
+     * Remove command form DB
+     */
+    console.log(`${executingCommand}: Success`);
+    isExecutingCommand = false;
+    commandReceived = false;
+    executingCommand = "";
+
+    executeCommandCallBack && executeCommandCallBack(responses);
+  }
+  if (commandReceived && data === "ERROR") {
+    console.log(`${executingCommand}: Error`);
+    isExecutingCommand = false;
+    commandReceived = false;
+    executingCommand = "";
+
+    await resetGSM(port, parser, gsmConfig);
+
+    executeCommandCallBack && executeCommandCallBack([]);
+  }
+};
