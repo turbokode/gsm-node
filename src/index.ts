@@ -157,6 +157,7 @@ function executeCommand(command: string): Promise<string[]> {
 
     executeCommandCallBack = (res: string[]) => {
       clearTimeout(timeOut);
+      console.log("CALL BACK is Executed!");
       resolve(res);
     };
   });
