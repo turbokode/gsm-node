@@ -319,6 +319,8 @@ async function gsmConfig() {
 }
 
 const onExecuteCommand = async (data: string) => {
+  console.log("ON_EXECUTE_COMMAND: ", data);
+
   if (data.replace("\r", "") === executingCommand) commandReceived = true;
 
   if (commandReceived) responses.push(data);
