@@ -3,6 +3,7 @@ import { isBefore } from "date-fns";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
 import { api } from "./api/server";
+import { MessageQueue } from "./resources/MessageQueue";
 import expirationDate from "./resources/expirationDate";
 import { isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
@@ -22,9 +23,7 @@ app.post("/send_sms", async (req, res) => {
     if (isStringEmpty(phoneNumber)) throw new Error("Phone number is empty!");
     if (isStringEmpty(message)) throw new Error("Message content is empty!");
 
-    const sendStatus = await sendSMS(phoneNumber, message);
-
-    if (!sendStatus) throw new Error("Failed when try to send SMS!");
+    addToSendQueue(phoneNumber, message);
 
     res.json({ message: "success" });
   } catch (err) {
@@ -64,7 +63,8 @@ const port = new SerialPort({ path: "/dev/serial0", baudRate: 115200 });
 const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
 /* ============== USER COMMUNICATION SYSTEM ============== */
-let messageQueue = new Array<string>();
+const sendSMSQueue = new MessageQueue();
+let newMessageQueue = new Array<string>();
 let isSendingSMS = false;
 let isExecutingCommand = false;
 let responses: string[] = [];
@@ -121,7 +121,7 @@ async function getUnreadMessages(): Promise<string[]> {
     const splited = message.split(",");
     return splited[0].replace("+CMGL: ", '+CMTI: "SM",');
   });
-  messageQueue.push(...queues);
+  newMessageQueue.push(...queues);
 
   processNextMessage();
 
@@ -162,9 +162,6 @@ function executeCommand(command: string): Promise<string[]> {
       );
 
       if (okRes && isCurrentCommand) isExecuted = true;
-      console.log("RES: ", responses);
-      console.log("okRes: ", okRes);
-      console.log("commandReceived: ", commandReceived);
 
       if (isExecuted) {
         clearTimeout(timeOut);
@@ -186,22 +183,22 @@ parser.on("data", (data) => {
 function newSMS(gsmMessage: string) {
   console.log("Nova mensagem recebida: ", gsmMessage);
 
-  if (messageQueue.length > 0) messageQueue.push(gsmMessage);
+  if (newMessageQueue.length > 0) newMessageQueue.push(gsmMessage);
 
-  if (messageQueue.length == 0) {
-    messageQueue.push(gsmMessage);
+  if (newMessageQueue.length == 0) {
+    newMessageQueue.push(gsmMessage);
     processNextMessage();
   }
 }
 
 async function processNextMessage() {
-  console.log("messageQueue.length", messageQueue.length);
+  console.log("newMessageQueue.length", newMessageQueue.length);
 
-  if (messageQueue.length === 0 || isSendingSMS) {
+  if (newMessageQueue.length === 0 || isSendingSMS) {
     return;
   }
 
-  const message = messageQueue.shift();
+  const message = newMessageQueue.shift();
 
   if (!message) {
     console.error("NOT MESSAGE FOUND ON QUEUE");
@@ -227,12 +224,7 @@ async function processNextMessage() {
       const message =
         "Desculpa a sua solicitação esgotou o tempo de processamento, por favor volte a tentar novamente!";
 
-      await sendSMS(newUserMessage.phoneNumber, message).catch((err) => {
-        console.log("Error when try to send SMS!");
-        /**
-         * Geral log do erro e enviar uma notificação para o admin!
-         */
-      });
+      addToSendQueue(newUserMessage.phoneNumber, message);
     } else {
       try {
         const response = await api.post("/system_gate_way", {
@@ -248,7 +240,7 @@ async function processNextMessage() {
         const message =
           "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
 
-        await sendSMS(newUserMessage.phoneNumber, message);
+        addToSendQueue(newUserMessage.phoneNumber, message);
       }
     }
   }
@@ -268,7 +260,36 @@ async function getNewUserMessage(line: string) {
   return userMessage;
 }
 
-function sendSMS(phoneNumber: string, msg: string, callback?: () => void) {
+function addToSendQueue(phoneNumber: string, message: string) {
+  sendSMSQueue.set({ phoneNumber, message, sendState: false });
+
+  if (isSendingSMS) return;
+
+  sendSMSManager();
+}
+
+async function sendSMSManager() {
+  const toSendMessage = sendSMSQueue.getNext();
+
+  if (toSendMessage) {
+    try {
+      await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
+      sendSMSQueue.update({ ...toSendMessage, sendState: true });
+    } catch (error) {
+      console.log(
+        `Failed when try to send SMS to ${toSendMessage.phoneNumber}: `,
+        error
+      );
+      /**
+       * Save log
+       */
+    }
+
+    sendSMSManager();
+  }
+}
+
+function sendSMS(phoneNumber: string, msg: string): Promise<boolean> {
   isSendingSMS = true;
 
   return new Promise((resolve, reject) => {
@@ -286,8 +307,6 @@ function sendSMS(phoneNumber: string, msg: string, callback?: () => void) {
         console.log("Mensagem enviada com sucesso!");
         parser.removeListener("data", onData);
         isSendingSMS = false;
-
-        callback && callback();
 
         port.write(`AT+CMGDA="DEL SENT"\r\n`);
 
