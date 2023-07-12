@@ -215,11 +215,6 @@ async function processNextMessage() {
       minutes: 15,
     });
 
-    console.log(
-      "isBefore(passedTime, new Date()): ",
-      isBefore(new Date(), passedTime)
-    );
-
     if (isBefore(new Date(), passedTime)) {
       const message =
         "Desculpa a sua solicitação esgotou o tempo de processamento, por favor volte a tentar novamente!";
@@ -261,6 +256,7 @@ async function getNewUserMessage(line: string) {
 }
 
 function addToSendQueue(phoneNumber: string, message: string) {
+  console.log("Add to queue: ", phoneNumber);
   sendSMSQueue.set({ phoneNumber, message, sendState: false });
 
   if (isSendingSMS) return;
@@ -331,7 +327,10 @@ function sendSMS(phoneNumber: string, msg: string): Promise<boolean> {
     setTimeout(function () {
       // Comando AT para enviar a mensagem
       port.write(`AT+CMGS= "+258${phoneNumber}"\r\n`);
-      port.write(`${message}`);
+
+      setTimeout(() => {
+        port.write(`${message}`);
+      }, 500);
 
       setTimeout(() => {
         port.write(`${endMessageIndicator}\r\n`, (error) => {
@@ -340,7 +339,7 @@ function sendSMS(phoneNumber: string, msg: string): Promise<boolean> {
             return;
           }
         });
-      }, 200);
+      }, 500);
     }, 2000);
   });
 }
