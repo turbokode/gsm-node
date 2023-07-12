@@ -35,11 +35,15 @@ export class MessageQueue {
     const index = this.messages.findIndex(
       (msg) => msg.phoneNumber === message.phoneNumber
     );
+    console.log("UPDATE INDEX: ", index);
 
     if (index) {
-      const updatedMessage = (this.messages[index] = message);
+      this.messages.splice(index, 1);
+      this.messages.push(message);
 
-      return updatedMessage;
+      console.log("UPDATE INDEX: ", message);
+
+      return message;
     }
 
     return;

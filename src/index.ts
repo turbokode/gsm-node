@@ -270,8 +270,10 @@ async function sendSMSManager() {
 
   if (toSendMessage) {
     try {
-      await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
-      sendSMSQueue.update({ ...toSendMessage, sendState: true });
+      // await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
+      const result = sendSMSQueue.update({ ...toSendMessage, sendState: true });
+
+      console.log("UPDATE RESULT: ", result);
     } catch (error) {
       console.log(
         `Failed when try to send SMS to ${toSendMessage.phoneNumber}: `,
