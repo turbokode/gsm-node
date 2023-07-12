@@ -157,8 +157,11 @@ function executeCommand(command: string): Promise<string[]> {
     let isExecuted = false;
     const interval = setInterval(() => {
       const okRes = !!responses.find((res) => res === "OK");
+      const isCurrentCommand = !!responses.find(
+        (res) => res.replace("\r", "") === command
+      );
 
-      if (okRes && commandReceived) isExecuted = true;
+      if (okRes && isCurrentCommand) isExecuted = true;
       console.log("RES: ", responses);
       console.log("okRes: ", okRes);
       console.log("commandReceived: ", commandReceived);
