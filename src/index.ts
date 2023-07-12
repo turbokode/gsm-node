@@ -70,7 +70,6 @@ let isExecutingCommand = false;
 let responses: string[] = [];
 let executingCommand = "";
 let commandReceived = false;
-let executeCommandCallBack: undefined | ((res: string[]) => void) = undefined;
 
 setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
@@ -156,17 +155,20 @@ function executeCommand(command: string): Promise<string[]> {
     });
 
     let isExecuted = false;
-    do {
-      if (!!responses.find((res) => res === "OK")) isExecuted = true;
+    const interval = setInterval(() => {
+      const okRes = !!responses.find((res) => res === "OK");
+
+      if (okRes && commandReceived) isExecuted = true;
       console.log("RES: ", responses);
-    } while (!isExecuted);
 
-    if (isExecuted) {
-      clearTimeout(timeOut);
-      console.log("Command Executed!");
+      if (isExecuted) {
+        clearTimeout(timeOut);
+        clearInterval(interval);
+        console.log("Command Executed!");
 
-      resolve(responses);
-    }
+        resolve(responses);
+      }
+    }, 500);
   });
 }
 
@@ -341,8 +343,6 @@ const onExecuteCommand = async (data: string) => {
     isExecutingCommand = false;
     commandReceived = false;
     executingCommand = "";
-
-    executeCommandCallBack && executeCommandCallBack(responses);
   }
   if (commandReceived && data === "ERROR") {
     console.log(`${executingCommand}: Error`);
@@ -351,7 +351,5 @@ const onExecuteCommand = async (data: string) => {
     executingCommand = "";
 
     await resetGSM(port, parser, gsmConfig);
-
-    executeCommandCallBack && executeCommandCallBack([]);
   }
 };
