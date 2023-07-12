@@ -137,7 +137,7 @@ function executeCommand(command: string): Promise<string[]> {
   console.log("EXECUTING: ", command);
   isExecutingCommand = true;
   executingCommand = command;
-  executeCommandCallBack = undefined;
+  responses = [];
 
   return new Promise((resolve, reject) => {
     const timeOut = setTimeout(() => {
@@ -155,11 +155,18 @@ function executeCommand(command: string): Promise<string[]> {
       }
     });
 
-    executeCommandCallBack = (res: string[]) => {
+    let isExecuted = false;
+    do {
+      if (!!responses.find((res) => res === "OK")) isExecuted = true;
+      console.log("RES: ", responses);
+    } while (!isExecuted);
+
+    if (isExecuted) {
       clearTimeout(timeOut);
-      console.log("CALL BACK is Executed!");
-      resolve(res);
-    };
+      console.log("Command Executed!");
+
+      resolve(responses);
+    }
   });
 }
 
