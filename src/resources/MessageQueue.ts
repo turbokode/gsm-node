@@ -37,7 +37,7 @@ export class MessageQueue {
     );
     console.log("UPDATE INDEX: ", index);
 
-    if (index) {
+    if (index >= 0) {
       this.messages.splice(index, 1);
       this.messages.push(message);
 
