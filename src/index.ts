@@ -161,6 +161,7 @@ function executeCommand(command: string): Promise<string[]> {
       if (okRes && commandReceived) isExecuted = true;
       console.log("RES: ", responses);
       console.log("okRes: ", okRes);
+      console.log("commandReceived: ", commandReceived);
 
       if (isExecuted) {
         clearTimeout(timeOut);
