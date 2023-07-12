@@ -266,6 +266,7 @@ function addToSendQueue(phoneNumber: string, message: string) {
 
 async function sendSMSManager() {
   const toSendMessage = sendSMSQueue.getNext();
+  console.log("QUEUE MESSAGES: ", sendSMSQueue.getAll());
 
   if (toSendMessage) {
     try {
