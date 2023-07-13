@@ -43,17 +43,15 @@ export function resetGSM(
           callBack && (await callBack());
 
           console.log("GSM RESTARTED!");
-          resolve;
+          resolve(true);
         }
       };
 
       parser.on("data", onData);
     } catch (error) {
       console.error("Error when try to restart GSM:", error);
-      reject;
+      reject(false);
     }
-
-    console.log("DONE!");
   });
 }
 

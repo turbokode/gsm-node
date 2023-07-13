@@ -367,8 +367,6 @@ function sendSMS(phoneNumber: string, msg: string) {
         await resetGSM(port, parser, gsmConfig);
         isSendingSMS = false;
 
-        console.log(`ERROR WHEN TRY SEND SMS: ${data}`);
-
         reject(`ERROR WHEN TRY SEND SMS: ${data}`);
       }
     };
