@@ -52,6 +52,8 @@ export function resetGSM(
       console.error("Error when try to restart GSM:", error);
       reject;
     }
+
+    console.log("DONE!");
   });
 }
 
