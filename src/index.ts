@@ -270,7 +270,7 @@ async function sendSMSManager() {
 
   if (toSendMessage) {
     try {
-      // await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
+      await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
       const result = sendSMSQueue.update({ ...toSendMessage, sendState: true });
 
       console.log("UPDATE RESULT: ", result);
