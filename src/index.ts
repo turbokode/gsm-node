@@ -92,7 +92,7 @@ parser.on("data", (data) => {
 });
 
 async function onExecuteCommand(data: string) {
-  console.log("ON EXECUTE COMMAND LISTENER: ", data);
+  // console.log("EXECUTE LISTENER: ", data);
 
   if (data.replace("\r", "") === executingCommand) commandReceived = true;
 
@@ -109,11 +109,11 @@ async function onExecuteCommand(data: string) {
   }
   if (commandReceived && data === "ERROR") {
     console.log(`${executingCommand}: ERROR`);
-    isExecutingCommand = false;
     commandReceived = false;
     executingCommand = "";
 
     await resetGSM(port, parser, gsmConfig);
+    isExecutingCommand = false;
   }
 }
 
@@ -359,11 +359,10 @@ function sendSMS(phoneNumber: string, msg: string) {
           resolve("SMS SENT SUCCESSFULLY!");
         }, 500);
       } else if (data.includes("ERROR")) {
-        console.error();
         parser.removeListener("data", onData);
-        isSendingSMS = false;
 
         await resetGSM(port, parser, gsmConfig);
+        isSendingSMS = false;
 
         setTimeout(() => {
           reject(`ERROR WHEN TRY SEND SMS: ${data}`);
