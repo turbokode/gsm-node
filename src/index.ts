@@ -320,8 +320,11 @@ async function sendSMSManager() {
 
   if (toSendMessage) {
     try {
-      await sendSMS(toSendMessage.phoneNumber, toSendMessage.message);
+      await sendSMS(toSendMessage.phoneNumber, toSendMessage.message).then(
+        (res) => console.log(res)
+      );
       sendSMSQueue.update({ ...toSendMessage, sendState: true });
+      console.log("MENSAGEM ENVIADA!");
     } catch (error) {
       console.log(
         `Failed when try to send SMS to ${toSendMessage.phoneNumber}: `,
@@ -364,9 +367,9 @@ function sendSMS(phoneNumber: string, msg: string) {
         await resetGSM(port, parser, gsmConfig);
         isSendingSMS = false;
 
-        setTimeout(() => {
-          reject(`ERROR WHEN TRY SEND SMS: ${data}`);
-        }, 500);
+        console.log(`ERROR WHEN TRY SEND SMS: ${data}`);
+
+        reject(`ERROR WHEN TRY SEND SMS: ${data}`);
       }
     };
 
