@@ -320,7 +320,7 @@ function addToSendQueue(phoneNumber: string, message: string) {
 
 async function sendSMSManager() {
   const toSendMessage = sendSMSQueue.getNext();
-  console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
+  // console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
 
   if (toSendMessage) {
     if (lastSentMessage === toSendMessage) tryToSendSMSCounter++;
@@ -341,7 +341,7 @@ async function sendSMSManager() {
        */
     }
 
-    if (tryToSendSMSCounter <= 3) {
+    if (tryToSendSMSCounter < 2) {
       sendSMSManager();
     }
   }
