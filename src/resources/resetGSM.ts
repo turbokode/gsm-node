@@ -10,8 +10,8 @@ export function resetGSM(
   parser: ReadlineParser,
   callBack?: () => Promise<void>
 ) {
-  let tryCounter = 0;
   console.log("Trying to restart GSM!");
+  let tryCounter = 0;
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -34,7 +34,7 @@ export function resetGSM(
       }, 10000);
 
       const onData = async (data: string) => {
-        console.log("RESET DATA: ", [data]);
+        console.log("RESET EVENT LISTENER DATA: ", [data]);
 
         if (data.replace("\r", "") === "OK") {
           clearInterval(interval);
@@ -42,13 +42,14 @@ export function resetGSM(
 
           callBack && (await callBack());
 
-          console.log("GSM Module restarted!");
+          console.log("GSM RESTARTED!");
           resolve;
         }
       };
+
       parser.on("data", onData);
     } catch (error) {
-      console.error("Error when try to restart GSM module:", error);
+      console.error("Error when try to restart GSM:", error);
       reject;
     }
   });
