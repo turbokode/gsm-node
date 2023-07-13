@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { isBefore } from "date-fns";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
+import { MessageType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import expirationDate from "./resources/expirationDate";
@@ -64,11 +65,13 @@ const port = new SerialPort({ path: "/dev/serial0", baudRate: 115200 });
 const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
 /* ============== USER COMMUNICATION SYSTEM ============== */
+let lastSentMessage: MessageType | undefined = undefined;
 let newMessageQueue = new Array<string>();
 const sendSMSQueue = new MessageQueue();
 let commandExecutionsCounter = 0;
 let isExecutingCommand = false;
 let responses: string[] = [];
+let tryToSendSMSCounter = 0;
 let commandReceived = false;
 let executingCommand = "";
 let isSendingSMS = false;
@@ -229,6 +232,7 @@ async function getUnreadMessages() {
 
 function newSMS(gsmMessage: string) {
   console.log("NEW SMS: ", gsmMessage);
+  tryToSendSMSCounter = 0;
 
   if (newMessageQueue.length > 0) newMessageQueue.push(gsmMessage);
 
@@ -319,12 +323,14 @@ async function sendSMSManager() {
   console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
 
   if (toSendMessage) {
+    if (lastSentMessage === toSendMessage) tryToSendSMSCounter++;
+    lastSentMessage = toSendMessage;
+
     try {
       await sendSMS(toSendMessage.phoneNumber, toSendMessage.message).then(
         (res) => console.log(res)
       );
       sendSMSQueue.update({ ...toSendMessage, sendState: true });
-      console.log("MENSAGEM ENVIADA!");
     } catch (error) {
       console.log(
         `Failed when try to send SMS to ${toSendMessage.phoneNumber}: `,
@@ -335,7 +341,9 @@ async function sendSMSManager() {
        */
     }
 
-    sendSMSManager();
+    if (tryToSendSMSCounter <= 3) {
+      sendSMSManager();
+    }
   }
 }
 

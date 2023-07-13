@@ -1,8 +1,5 @@
-type MessageType = {
-  phoneNumber: string;
-  message: string;
-  sendState?: boolean;
-};
+import { MessageType } from "../@types/app";
+
 
 export class MessageQueue {
   private messages: MessageType[] = [];
