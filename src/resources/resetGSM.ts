@@ -11,6 +11,7 @@ export async function resetGSM(
   callBack?: () => Promise<void>
 ) {
   let tryCounter = 0;
+  console.log("Trying to restart GSM!");
 
   try {
     // Coloca o pino em nível baixo (LOW) por um curto período de tempo
