@@ -152,7 +152,7 @@ function executeCommand(command: string) {
       clearTimeout(timeOut);
       clearInterval(interval);
 
-      console.log("The GSM module is not responding!");
+      await resetGSM(port, parser, gsmConfig);
 
       await executeCommand(command)
         .catch((err) => reject(err))
