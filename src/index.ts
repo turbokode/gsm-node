@@ -20,6 +20,8 @@ app.use(express.json());
 app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
 
+  console.log("SEND SMS REQUEST: ", { phoneNumber, message });
+
   try {
     if (isStringEmpty(phoneNumber)) throw new Error("Phone number is empty!");
     if (isStringEmpty(message)) throw new Error("Message content is empty!");
@@ -311,6 +313,7 @@ async function getNewUserMessage(line: string) {
 }
 
 function addToSendQueue(phoneNumber: string, message: string) {
+  console.log("ADD TO QUEUE: ", { phoneNumber, message });
   sendSMSQueue.set({ phoneNumber, message, sendState: false });
 
   if (isSendingSMS) return;
