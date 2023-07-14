@@ -188,7 +188,7 @@ const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
     await getUnreadMessages();
   }
-}, 5000);
+}, 35000);
 
 async function getUnreadMessages() {
   const returnedUnreadMessages = await new Promise<string[]>(
