@@ -184,11 +184,11 @@ function executeCommand(command: string) {
   });
 }
 
-setInterval(async () => {
+const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
     await getUnreadMessages();
   }
-}, 30000);
+}, 5000);
 
 async function getUnreadMessages() {
   const returnedUnreadMessages = await new Promise<string[]>(
@@ -353,6 +353,7 @@ async function sendSMSManager() {
 
 function sendSMS(phoneNumber: string, msg: string) {
   isSendingSMS = true;
+  checkUnreadMessageInterval.refresh();
 
   return new Promise((resolve, reject) => {
     const sendIDRegex = /\+CMGS: (\d+)/;
