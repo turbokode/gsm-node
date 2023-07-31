@@ -268,6 +268,13 @@ async function processNextMessage() {
       minutes: 15,
     });
 
+    console.log("passedTime: ", passedTime);
+    console.log("new Date(): ", new Date());
+    console.log(
+      "isBefore(new Date(), passedTime): ",
+      isBefore(new Date(), passedTime)
+    );
+
     if (isBefore(new Date(), passedTime)) {
       const message =
         "Desculpa a sua solicitação esgotou o tempo de processamento, por favor volte a tentar novamente!";
