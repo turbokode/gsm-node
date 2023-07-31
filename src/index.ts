@@ -268,13 +268,6 @@ async function processNextMessage() {
       minutes: 15,
     });
 
-    console.log("passedTime: ", passedTime);
-    console.log("new Date(): ", new Date());
-    console.log(
-      "isBefore(new Date(), passedTime): ",
-      isAfter(new Date(), passedTime)
-    );
-
     if (isAfter(new Date(), passedTime)) {
       const message =
         "Desculpa a sua solicitação esgotou o tempo de processamento, por favor volte a tentar novamente!";
@@ -361,6 +354,10 @@ async function sendSMSManager() {
 function sendSMS(phoneNumber: string, msg: string) {
   isSendingSMS = true;
   checkUnreadMessageInterval.refresh();
+
+  return new Promise((resolve) => {
+    resolve("SMS SENT SUCCESSFULLY!");
+  });
 
   return new Promise((resolve, reject) => {
     const sendIDRegex = /\+CMGS: (\d+)/;
