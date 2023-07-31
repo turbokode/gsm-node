@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { isBefore } from "date-fns";
+import { isAfter } from "date-fns";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
 import { MessageType } from "./@types/app";
@@ -272,10 +272,10 @@ async function processNextMessage() {
     console.log("new Date(): ", new Date());
     console.log(
       "isBefore(new Date(), passedTime): ",
-      isBefore(new Date(), passedTime)
+      isAfter(new Date(), passedTime)
     );
 
-    if (isBefore(new Date(), passedTime)) {
+    if (isAfter(new Date(), passedTime)) {
       const message =
         "Desculpa a sua solicitação esgotou o tempo de processamento, por favor volte a tentar novamente!";
 
