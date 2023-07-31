@@ -1,4 +1,6 @@
+import { isBefore } from "date-fns";
 import { MessageType } from "../@types/app";
+import expirationDate from "./expirationDate";
 
 export class MessageQueue {
   private msgs = new Map<number, MessageType>();
@@ -9,8 +11,20 @@ export class MessageQueue {
    * @param newMessage the message that will be inserted at the end of
    * the queue
    */
-  public set(newMessage: MessageType) {
-    this.msgs.set(this.msgs.size + 1, newMessage);
+  public set({ date = new Date(), ...newMessage }: MessageType) {
+    let isQueued = false;
+    this.msgs.forEach((msg) => {
+      if (
+        msg.phoneNumber === newMessage.phoneNumber &&
+        msg.message === newMessage.message
+      ) {
+        const passed = expirationDate({ date: msg.date!, minutes: 2 });
+        isQueued = isBefore(date, passed);
+        console.log("Message with equal data! ", isBefore(date, passed));
+      }
+    });
+
+    !isQueued && this.msgs.set(this.msgs.size + 1, newMessage);
   }
 
   public getAll(): MessageType[] {
