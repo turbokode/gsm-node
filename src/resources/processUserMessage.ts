@@ -22,7 +22,7 @@ export function processUserMessage(userMessage: string[]) {
 function newDate(dateString: string) {
   const [datePart, timePart] = dateString.split(",");
 
-  const [day, month, year] = datePart.split("/").map(Number);
+  const [year, month, day] = datePart.split("/").map(Number);
   const [hour, minute, second] = timePart.split(":").map(Number);
 
   const date = new Date(year + 2000, month - 1, day, hour, minute, second);
