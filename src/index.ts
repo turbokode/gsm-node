@@ -356,6 +356,7 @@ function sendSMS(phoneNumber: string, msg: string) {
   checkUnreadMessageInterval.refresh();
 
   return new Promise((resolve) => {
+    isSendingSMS = false;
     resolve("SMS SENT SUCCESSFULLY!");
   });
 
