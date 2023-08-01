@@ -355,10 +355,11 @@ function sendSMS(phoneNumber: string, msg: string) {
   isSendingSMS = true;
   checkUnreadMessageInterval.refresh();
 
-  return new Promise((resolve) => {
-    isSendingSMS = false;
-    resolve("SMS SENT SUCCESSFULLY!");
-  });
+  //============= DEBUG MODE ==================
+  // return new Promise((resolve) => {
+  //   isSendingSMS = false;
+  //   resolve("SMS SENT SUCCESSFULLY!");
+  // });
 
   return new Promise((resolve, reject) => {
     const sendIDRegex = /\+CMGS: (\d+)/;
