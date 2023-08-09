@@ -1,10 +1,7 @@
-export type IMsgTopic = "new.userSMS";
+export type IMsgTopic = "new.userSMS" | "new.apiSMS";
 
 export type IMessagingConnectOptions = {
   module: "cons" | "prod";
 };
 
-export type IEachMessageCallback = (
-  error: any | null,
-  data: string | null
-) => void;
+export type IEachMsgCallback = (err: any | null, data: string) => void;

@@ -1,11 +1,17 @@
-import { IMessagingConnectOptions, IMsgTopic } from "./@types";
-import { kafka, producerConfig } from "./config";
+import {
+  IEachMsgCallback,
+  IMessagingConnectOptions,
+  IMsgTopic,
+} from "./@types";
+import { consumerConfig, kafka, producerConfig } from "./config";
 
 export default class Messaging {
   private producer;
+  private consumer;
 
   constructor() {
     this.producer = kafka.producer(producerConfig);
+    this.consumer = kafka.consumer(consumerConfig);
   }
 
   public async connect({ module }: IMessagingConnectOptions): Promise<void> {
@@ -15,6 +21,13 @@ export default class Messaging {
         .connect()
         .then(() => console.log("connected to messaging producer"));
     }
+
+    if (module === "cons") {
+      console.log("connecting to messaging consumer");
+      return this.consumer
+        .connect()
+        .then(() => console.log("connected to messaging consumer"));
+    }
   }
 
   public async disconnect({ module }: IMessagingConnectOptions): Promise<void> {
@@ -23,6 +36,13 @@ export default class Messaging {
       return this.producer
         .disconnect()
         .then(() => console.log("disconnected to messaging producer"));
+    }
+
+    if (module === "cons") {
+      console.log("disconnecting to messaging consumer");
+      return this.consumer
+        .disconnect()
+        .then(() => console.log("disconnected to messaging consumer"));
     }
   }
 
@@ -44,5 +64,25 @@ export default class Messaging {
     } finally {
       await this.disconnect({ module: "prod" });
     }
+  }
+
+  public async get(
+    topic: IMsgTopic,
+    callback: IEachMsgCallback
+  ): Promise<void> {
+    await this.connect({ module: "cons" });
+    await this.consumer.subscribe({ topic, fromBeginning: true });
+    await this.consumer.run({
+      eachMessage: async ({ message, ...payload }) => {
+        if (topic === payload.topic) {
+          const data = message.value!.toString();
+
+          console.log(`[new message on topic]: '${topic}'`);
+          console.log(`[message]: ${data}`);
+
+          callback(null, data);
+        }
+      },
+    });
   }
 }

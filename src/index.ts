@@ -11,6 +11,7 @@ import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
 import { resetGSM } from "./resources/resetGSM";
 import Messaging from "./messaging";
+import services from "./services";
 
 const app = express();
 const kafka = new Messaging();
@@ -18,7 +19,6 @@ const serverPort = 3001;
 
 app.use(express.json());
 
-// todo: kafka
 app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
 
@@ -61,9 +61,13 @@ app.get("/check_sys", async (req, res) => {
   }
 });
 
-app.listen(serverPort, () => {
-  console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`);
-});
+services.kafka
+  .newApiSMS()
+  .then(() =>
+    app.listen(serverPort, () =>
+      console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`)
+    )
+  );
 
 // Create a port
 const port = new SerialPort({ path: "/dev/serial0", baudRate: 115200 });
@@ -314,7 +318,7 @@ async function getNewUserMessage(line: string) {
   }
 }
 
-function addToSendQueue(phoneNumber: string, message: string) {
+export function addToSendQueue(phoneNumber: string, message: string) {
   console.log("ADD TO QUEUE: ", { phoneNumber, message });
   sendSMSQueue.set({ phoneNumber, message, sendState: false });
 
