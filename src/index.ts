@@ -10,13 +10,16 @@ import { isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
 import { resetGSM } from "./resources/resetGSM";
+import Messaging from "./messaging";
 
 const app = express();
+const kafka = new Messaging();
 
 const serverPort = 3001;
 
 app.use(express.json());
 
+// todo: kafka
 app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
 
@@ -39,6 +42,7 @@ app.post("/send_sms", async (req, res) => {
   }
 });
 
+// todo: kafka
 app.get("/check_sys", async (req, res) => {
   let status = { server: true, gsm: false };
 
@@ -275,12 +279,11 @@ async function processNextMessage() {
       addToSendQueue(newUserMessage.phoneNumber, message);
     } else {
       try {
-        const response = await api.post("/system_gate_way", {
-          phoneNumber: newUserMessage.phoneNumber,
-          content: newUserMessage.content,
-        });
-
-        console.log("POST TO SERVER EXECUTED: ", response.data);
+        const { phoneNumber, content } = newUserMessage;
+        await kafka.create(
+          "new.userSMS",
+          JSON.stringify({ phoneNumber, content })
+        );
       } catch (error) {
         const err = error as AxiosError;
 
