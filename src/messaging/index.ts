@@ -1,4 +1,4 @@
-import { IMessagingConnectOptions, IMessagingTopic } from "./@types";
+import { IMessagingConnectOptions, IMsgTopic } from "./@types";
 import { kafka, producerConfig } from "./config";
 
 export default class Messaging {
@@ -26,7 +26,7 @@ export default class Messaging {
     }
   }
 
-  public async create(topic: IMessagingTopic, message: string): Promise<void> {
+  public async create(topic: IMsgTopic, message: string): Promise<void> {
     try {
       const key = `key_${topic}`;
       const messages = [{ value: message, key }];

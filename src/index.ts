@@ -14,7 +14,6 @@ import Messaging from "./messaging";
 
 const app = express();
 const kafka = new Messaging();
-
 const serverPort = 3001;
 
 app.use(express.json());

@@ -1,4 +1,4 @@
-export type IMessagingTopic = "new.userSMS";
+export type IMsgTopic = "new.userSMS";
 
 export type IMessagingConnectOptions = {
   module: "cons" | "prod";
