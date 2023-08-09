@@ -282,11 +282,12 @@ async function processNextMessage() {
       addToSendQueue(newUserMessage.phoneNumber, message);
     } else {
       try {
-        const { phoneNumber, content } = newUserMessage;
-        await kafka.create(
-          "new.userSMS",
-          JSON.stringify({ phoneNumber, content })
-        );
+        const response = await api.post("/system_gate_way", {
+          phoneNumber: newUserMessage.phoneNumber,
+          content: newUserMessage.content,
+        });
+
+        console.log("POST TO SERVER EXECUTED: ", response.data);
       } catch (error) {
         const err = error as AxiosError;
 
