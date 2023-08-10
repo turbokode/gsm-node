@@ -10,12 +10,14 @@ import { isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
 import { resetGSM } from "./resources/resetGSM";
+import cors from "cors"
 
 const app = express();
 
 const serverPort = 3001;
 
 app.use(express.json());
+app.use(cors());
 
 app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
