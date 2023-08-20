@@ -1,20 +1,21 @@
 import { AxiosError } from "axios";
+import cors from "cors";
 import { isAfter } from "date-fns";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
 import { MessageType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
+import { configServer } from "./resources/configServer";
 import expirationDate from "./resources/expirationDate";
-import { isStringEmpty } from "./resources/isEmpty";
+import { isEmpty, isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
 import { resetGSM } from "./resources/resetGSM";
-import cors from "cors"
 
 const app = express();
 
-const serverPort = 3001;
+const serverPort = process.env.PORT;
 
 app.use(express.json());
 app.use(cors());
@@ -60,8 +61,16 @@ app.get("/check_sys", async (req, res) => {
   }
 });
 
-app.listen(serverPort, () => {
-  console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`);
+app.listen(serverPort, async () => {
+  await configServer().catch((err) => {
+    if (
+      process.env.ALERT_PHONE_NUMBER &&
+      !isEmpty(process.env.ALERT_PHONE_NUMBER)
+    )
+      addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
+  });
+
+  console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 });
 
 // Create a port
