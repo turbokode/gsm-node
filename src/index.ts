@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { AxiosError } from "axios";
 import cors from "cors";
 import { isAfter } from "date-fns";

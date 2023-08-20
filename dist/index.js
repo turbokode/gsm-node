@@ -12,19 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
+const cors_1 = __importDefault(require("cors"));
 const date_fns_1 = require("date-fns");
 const express_1 = __importDefault(require("express"));
 const serialport_1 = require("serialport");
 const server_1 = require("./api/server");
 const MessageQueue_1 = require("./resources/MessageQueue");
+const configServer_1 = require("./resources/configServer");
 const expirationDate_1 = __importDefault(require("./resources/expirationDate"));
 const isEmpty_1 = require("./resources/isEmpty");
 const processUserMessage_1 = require("./resources/processUserMessage");
 const removeAccents_1 = require("./resources/removeAccents");
 const resetGSM_1 = require("./resources/resetGSM");
-const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
-const serverPort = 3001;
+const serverPort = process.env.PORT;
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 app.post("/send_sms", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -62,9 +64,14 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(500).json({ message: err });
     }
 }));
-app.listen(serverPort, () => {
-    console.log(`🚀 The Smart_Pump sys is running in ${serverPort} port!`);
-});
+app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, configServer_1.configServer)().catch((err) => {
+        if (process.env.ALERT_PHONE_NUMBER &&
+            !(0, isEmpty_1.isEmpty)(process.env.ALERT_PHONE_NUMBER))
+            addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
+    });
+    console.log(`🚀 The SMS server is running in ${serverPort} port!`);
+}));
 // Create a port
 const port = new serialport_1.SerialPort({ path: "/dev/serial0", baudRate: 115200 });
 const parser = port.pipe(new serialport_1.ReadlineParser({ delimiter: "\r\n" }));
