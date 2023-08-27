@@ -1,0 +1,5 @@
+import axios from "axios";
+
+<<<<<<< HEAD
+eexport const api = axios.create({ baseURL: "https://power-switch-back-end.onrender.com" });
+>>>>>>> a76f2c6 (.)

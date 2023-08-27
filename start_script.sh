@@ -1,5 +1,7 @@
 #!/bin/bash
 
+project_path="/home/turbokone/Documents/gsm-node"
+
 # Remove o arquivo temp_output.txt se existir
 rm -f temp_output.txt
 
@@ -18,4 +20,4 @@ new_address=$(grep -Eo 'http://[a-zA-Z0-9./?=_-]+' temp_output.txt)
 sed -i "s|^GSM_PORT=.*|GSM_PORT=$new_address|" .env
 
 # Executa o comando yarn start
-yarn start
+cd "$project_path" && yarn start

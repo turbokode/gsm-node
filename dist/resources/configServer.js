@@ -15,11 +15,9 @@ let tryCounter = 0;
 function configServer() {
     return __awaiter(this, void 0, void 0, function* () {
         tryCounter++;
-        console.log("SERVER CONFIG: ", { smsServerURL: process.env.GSM_PORT });
-        return;
         return new Promise((resolve, reject) => {
             server_1.api
-                .post("/config_sms_server", { smsServerURL: process.env.GSM_PORT })
+                .post("/configSystem/save", { smsServerURL: process.env.GSM_PORT })
                 .then(({ data }) => {
                 resolve(JSON.stringify(data));
             })
