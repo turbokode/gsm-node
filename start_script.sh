@@ -1,23 +1,40 @@
 #!/bin/bash
 
-project_path="/home/turbokone/Documents/gsm-node"
+# Diretório do projeto
+project_dir="/home/turbokone/Documents/gsm-node"
 
-# Remove o arquivo temp_output.txt se existir
-rm -f temp_output.txt
+# Caminhos para os arquivos
+env_file="$project_dir/.env"
+temp_output_file="$project_dir/temp_output.txt"
+
+# Função para verificar a conectividade com a internet
+check_internet() {
+  while ! ping -c 1 google.com &> /dev/null; do
+    echo "Aguardando conexão com a internet...";
+    sleep 10;
+  done
+}
+
+# Verificar conectividade antes de prosseguir
+check_internet
+
+# Navegar para o diretório do projeto
+cd "$project_dir" || exit 1
 
 # Executa o comando tmole 3001 em segundo plano
-tmole 3001 > temp_output.txt &
+nohup tmole 3001 > "$temp_output_file" 2>&1 &
 
 # Aguarda até que o arquivo temp_output.txt seja criado
-while [ ! -f temp_output.txt ]; do
+while [ ! -f "$temp_output_file" ]; do
   sleep 10;
 done
 
 # Extrai o endereço do arquivo temporário
-new_address=$(grep -Eo 'http://[a-zA-Z0-9./?=_-]+' temp_output.txt)
+new_address=$(grep -Eo 'http://[a-zA-Z0-9./?=_-]+' "$temp_output_file")
 
 # Atualiza a variável no arquivo .env com o novo endereço
-sed -i "s|^GSM_PORT=.*|GSM_PORT=$new_address|" .env
+sed -i "s|^GSM_PORT=.*|GSM_PORT=$new_address|" "$env_file"
 
-# Executa o comando yarn start
-cd "$project_path" && yarn start
+# Executa os comandos de build e start do projeto
+yarn build
+yarn start
