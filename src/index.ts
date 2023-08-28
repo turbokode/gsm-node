@@ -1,7 +1,7 @@
-import "dotenv/config";
 import { AxiosError } from "axios";
 import cors from "cors";
 import { isAfter } from "date-fns";
+import "dotenv/config";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
 import { MessageType } from "./@types/app";
@@ -64,6 +64,7 @@ app.get("/check_sys", async (req, res) => {
 
 app.listen(serverPort, async () => {
   await configServer().catch((err) => {
+    console.log(err)
     if (
       process.env.ALERT_PHONE_NUMBER &&
       !isEmpty(process.env.ALERT_PHONE_NUMBER)

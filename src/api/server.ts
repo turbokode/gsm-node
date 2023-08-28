@@ -1,3 +1,5 @@
 import axios from "axios";
 
-export const api = axios.create({ baseURL: process.env.API_URL });
+export const api = axios.create({
+  baseURL: "https://power-switch-back-end.onrender.com",
+});
