@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
 const cors_1 = __importDefault(require("cors"));
 const date_fns_1 = require("date-fns");
+require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const serialport_1 = require("serialport");
 const server_1 = require("./api/server");
@@ -65,11 +65,15 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, configServer_1.configServer)().catch((err) => {
-        if (process.env.ALERT_PHONE_NUMBER &&
-            !(0, isEmpty_1.isEmpty)(process.env.ALERT_PHONE_NUMBER))
-            addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
-    });
+    yield (0, configServer_1.configServer)();
+    //   .catch((err) => {
+    //   console.log(err)
+    //   if (
+    //     process.env.ALERT_PHONE_NUMBER &&
+    //     !isEmpty(process.env.ALERT_PHONE_NUMBER)
+    //   )
+    //     addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
+    // });
     console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 }));
 // Create a port

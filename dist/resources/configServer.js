@@ -12,26 +12,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.configServer = void 0;
 const server_1 = require("../api/server");
 let tryCounter = 0;
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTMwMjYxMzYsImV4cCI6MTAzMzI5Mzk3MzYsInN1YiI6ImQ2MTY4ODk3LWI1MGMtNGE5Yy04ZTg3LWZmYjNlMmY1ZTBmNSJ9.1a9lMAmQjIEoVWUkAnNa46K-aJbSSmLbiFjfdjPlcoQ";
 function configServer() {
     return __awaiter(this, void 0, void 0, function* () {
         tryCounter++;
         return new Promise((resolve, reject) => {
             server_1.api
-                .post("/configSystem/save", { smsServerURL: process.env.GSM_PORT }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then(({ data }) => {
-                resolve(JSON.stringify(data));
-            })
-                .catch((err) => __awaiter(this, void 0, void 0, function* () {
-                if (tryCounter === 5)
-                    reject(`Failed when try to send SMS Server URL to API! \n==========\n${err} `);
-                yield sleep(100);
-                yield configServer();
-            }))
+                .post("/configSystem/save", { smsServerURL: process.env.GSM_PORT })
+                // .then(({ data }) => {
+                //   resolve(JSON.stringify(data));
+                // })
+                // .catch(async (err) => {
+                //   if (tryCounter === 5) {
+                //     reject(
+                //       `Failed when try to send SMS Server URL to API! \n==========\n${err} `
+                //     );
+                //   }
+                //   await sleep(100);
+                //   await configServer();
+                // })
                 .finally(() => {
                 tryCounter = 0;
             });

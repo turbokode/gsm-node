@@ -10,8 +10,8 @@ temp_output_file="$project_dir/temp_output.txt"
 # Função para verificar a conectividade com a internet
 check_internet() {
   while ! ping -c 1 google.com &> /dev/null; do
-    echo "Aguardando conexão com a internet...";
-    sleep 10;
+    echo "Aguardando conexão com a internet..."
+    sleep 10
   done
 }
 
@@ -26,7 +26,7 @@ nohup tmole 3001 > "$temp_output_file" 2>&1 &
 
 # Aguarda até que o arquivo temp_output.txt seja criado
 while [ ! -f "$temp_output_file" ]; do
-  sleep 10;
+  sleep 50;
 done
 
 # Extrai o endereço do arquivo temporário
