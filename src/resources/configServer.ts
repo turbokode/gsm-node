@@ -26,10 +26,16 @@ export async function configServer() {
             `Failed when try to send SMS Server URL to API! \n==========\n${err} `
           );
 
+        await sleep(5000);
+
         await configServer();
       })
       .finally(() => {
         tryCounter = 0;
       });
   });
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
