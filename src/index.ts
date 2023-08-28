@@ -9,7 +9,7 @@ import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import { configServer } from "./resources/configServer";
 import expirationDate from "./resources/expirationDate";
-import { isStringEmpty } from "./resources/isEmpty";
+import { isEmpty, isStringEmpty } from "./resources/isEmpty";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
 import { resetGSM } from "./resources/resetGSM";
@@ -63,15 +63,13 @@ app.get("/check_sys", async (req, res) => {
 });
 
 app.listen(serverPort, async () => {
-  await configServer();
-  //   .catch((err) => {
-  //   console.log(err)
-  //   if (
-  //     process.env.ALERT_PHONE_NUMBER &&
-  //     !isEmpty(process.env.ALERT_PHONE_NUMBER)
-  //   )
-  //     addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
-  // });
+  await configServer().catch((err) => {
+    if (
+      process.env.ALERT_PHONE_NUMBER &&
+      !isEmpty(process.env.ALERT_PHONE_NUMBER)
+    )
+      addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
+  });
 
   console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 });
