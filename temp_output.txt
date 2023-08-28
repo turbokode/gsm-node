@@ -1,2 +1,0 @@
-http://uje3nd-ip-197-235-235-39.tunnelmole.net is forwarding to localhost:3001
-https://uje3nd-ip-197-235-235-39.tunnelmole.net is forwarding to localhost:3001
