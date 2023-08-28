@@ -26,9 +26,9 @@ function configServer() {
                 resolve(JSON.stringify(data));
             })
                 .catch((err) => __awaiter(this, void 0, void 0, function* () {
-                if (tryCounter === 50)
+                if (tryCounter === 5)
                     reject(`Failed when try to send SMS Server URL to API! \n==========\n${err} `);
-                yield sleep(5000);
+                yield sleep(100);
                 yield configServer();
             }))
                 .finally(() => {
