@@ -21,12 +21,12 @@ export async function configServer() {
         resolve(JSON.stringify(data));
       })
       .catch(async (err) => {
-        if (tryCounter === 50)
+        if (tryCounter === 5)
           reject(
             `Failed when try to send SMS Server URL to API! \n==========\n${err} `
           );
 
-        await sleep(5000);
+        await sleep(100);
 
         await configServer();
       })
