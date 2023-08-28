@@ -28,6 +28,7 @@ function configServer() {
                 .catch((err) => __awaiter(this, void 0, void 0, function* () {
                 if (tryCounter === 50)
                     reject(`Failed when try to send SMS Server URL to API! \n==========\n${err} `);
+                yield sleep(5000);
                 yield configServer();
             }))
                 .finally(() => {
@@ -37,3 +38,6 @@ function configServer() {
     });
 }
 exports.configServer = configServer;
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
