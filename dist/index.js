@@ -64,6 +64,9 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(500).json({ message: err });
     }
 }));
+app.get("/", (req, res) => {
+    return res.send("SMS Server").status(200);
+});
 app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, configServer_1.configServer)().catch((err) => {
         if (process.env.ALERT_PHONE_NUMBER &&

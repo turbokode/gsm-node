@@ -24,6 +24,8 @@ cd "$project_dir" || exit 1
 # Executa o comando tmole 3001 em segundo plano
 nohup tmole 3001 > "$temp_output_file" 2>&1 &
 
+sleep 10
+
 # Aguarda até que o arquivo temp_output.txt seja criado
 while [ ! -f "$temp_output_file" ]; do
   sleep 50;
@@ -31,6 +33,8 @@ done
 
 # Extrai o endereço do arquivo temporário
 new_address=$(grep -Eo 'http://[a-zA-Z0-9./?=_-]+' "$temp_output_file")
+
+echo "$new_address"
 
 # Atualiza a variável no arquivo .env com o novo endereço
 sed -i "s|^GSM_PORT=.*|GSM_PORT=$new_address|" "$env_file"
