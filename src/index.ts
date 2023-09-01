@@ -355,9 +355,8 @@ async function sendSMSManager() {
         `Failed when try to send SMS to ${toSendMessage.phoneNumber}: `,
         error
       );
-      /**
-       * Save log
-       */
+
+      await notifications("SMS_LOS");
     }
 
     if (tryToSendSMSCounter < 2) {

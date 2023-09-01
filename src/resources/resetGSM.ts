@@ -1,6 +1,7 @@
 import { AutoDetectTypes } from "@serialport/bindings-cpp";
 import { Gpio } from "onoff";
 import { ReadlineParser, SerialPort } from "serialport";
+import { notifications } from "./notifications";
 
 // Configuração do pino GPIO 23 como saída em nível alto (HIGH)
 const resetPin = new Gpio(23, "high");
@@ -50,6 +51,9 @@ export function resetGSM(
       parser.on("data", onData);
     } catch (error) {
       console.error("Error when try to restart GSM:", error);
+
+      await notifications("GSM_OFF");
+
       reject(false);
     }
   });

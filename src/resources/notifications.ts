@@ -5,14 +5,13 @@ type NotificationContentType = { code?: string; message: string };
 
 export async function notifications(
   type: SystemNotificationType,
-  addToSendQueue: (phoneNumber: string, message: string) => void,
+  addToSendQueue?: (phoneNumber: string, message: string) => void,
   content?: NotificationContentType
 ) {
   if (type === "NET_OFF") {
     const notificationMessage =
       "SWITCH MASTER ERROR:\n\n O sistema de SMS não conseguiu se conectar ao servidor central!";
-
-    process.env.ALERT_PHONE_NUMBER &&
+    if (addToSendQueue && process.env.ALERT_PHONE_NUMBER)
       addToSendQueue(process.env.ALERT_PHONE_NUMBER, notificationMessage);
   } else {
     switch (type) {
