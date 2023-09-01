@@ -1,3 +1,4 @@
 node_modules/
 .env
 temp_output.txt
+.start_script.sh.swp

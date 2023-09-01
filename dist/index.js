@@ -65,15 +65,11 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, configServer_1.configServer)();
-    //   .catch((err) => {
-    //   console.log(err)
-    //   if (
-    //     process.env.ALERT_PHONE_NUMBER &&
-    //     !isEmpty(process.env.ALERT_PHONE_NUMBER)
-    //   )
-    //     addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
-    // });
+    yield (0, configServer_1.configServer)().catch((err) => {
+        if (process.env.ALERT_PHONE_NUMBER &&
+            !(0, isEmpty_1.isEmpty)(process.env.ALERT_PHONE_NUMBER))
+            addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
+    });
     console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 }));
 // Create a port
