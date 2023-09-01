@@ -62,6 +62,10 @@ app.get("/check_sys", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  return res.send("SMS Server").status(200);
+});
+
 app.listen(serverPort, async () => {
   await configServer().catch((err) => {
     if (
