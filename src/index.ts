@@ -55,9 +55,7 @@ app.get("/check_sys", async (req, res) => {
     res.json({ message: "success", data: status });
   } catch (err) {
     console.log(err);
-    /**
-     * Gerar log do erro e enviar uma notificação para o admin!
-     */
+    await notifications("BAD_REQUEST");
 
     res.status(500).json({ message: err });
   }
@@ -119,9 +117,6 @@ async function onExecuteCommand(data: string) {
   if (commandReceived) responses.push(data);
 
   if (commandReceived && data === "OK") {
-    /**
-     * Remove command form DB
-     */
     console.log(`${executingCommand}: SUCCESS EXECUTED!`);
     isExecutingCommand = false;
     commandReceived = false;
@@ -300,8 +295,7 @@ async function processNextMessage() {
         const err = error as AxiosError;
 
         console.log("POST ERROR: ", err.message);
-        const message =
-          "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
+        const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: ${process.env.ALERT_PHONE_NUMBER}.\n\nEstamos a trabalhar arduamente para resolver o problema.`;
 
         addToSendQueue(newUserMessage.phoneNumber, message);
       }
@@ -369,12 +363,6 @@ function sendSMS(phoneNumber: string, msg: string) {
   isSendingSMS = true;
   checkUnreadMessageInterval.refresh();
 
-  //============= DEBUG MODE ==================
-  // return new Promise((resolve) => {
-  //   isSendingSMS = false;
-  //   resolve("SMS SENT SUCCESSFULLY!");
-  // });
-
   return new Promise((resolve, reject) => {
     const sendIDRegex = /\+CMGS: (\d+)/;
     const message = removeAccents(msg);
@@ -432,6 +420,6 @@ async function gsmConfig() {
     await executeCommand(`AT+CMGDA="DEL READ"`).then((res) => console.log(res));
     await executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
   } catch (error) {
-    console.log(error);
+    await notifications("GSM_OFF");
   }
 }
