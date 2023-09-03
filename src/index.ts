@@ -9,7 +9,8 @@ import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import { configServer } from "./resources/configServer";
 import expirationDate from "./resources/expirationDate";
-import { isStringEmpty } from "./resources/isEmpty";
+import { isEmpty, isStringEmpty } from "./resources/isEmpty";
+import { isValidPhoneNumber } from "./resources/isValidValue";
 import { notifications } from "./resources/notifications";
 import { processUserMessage } from "./resources/processUserMessage";
 import { removeAccents } from "./resources/removeAccents";
@@ -53,6 +54,39 @@ app.get("/check_sys", async (req, res) => {
       status.gsm = true;
 
     res.json({ message: "success", data: status });
+  } catch (err) {
+    console.log(err);
+    await notifications("BAD_REQUEST");
+
+    res.status(500).json({ message: err });
+  }
+});
+
+app.get("/check_device", async (req, res) => {
+  const { deviceSIMNumber, checkCode } = req.params as unknown as {
+    deviceSIMNumber: string;
+    checkCode: string;
+  };
+
+  try {
+    if (isEmpty(deviceSIMNumber))
+      throw new Error("The Phone number cannot be null!");
+    if (isValidPhoneNumber(deviceSIMNumber, "ALL"))
+      throw new Error("Invalid phone number!");
+    if (isEmpty(checkCode)) throw new Error("The check code cannot be null!");
+
+    addToSendQueue(deviceSIMNumber, checkCode);
+
+    // const messageList = sendSMSQueue.getAll();
+
+    // const sendMessage = messageList.find((msg) => {
+    //   if (msg.phoneNumber === deviceSIMNumber && msg.sendState) {
+    //     // const passTime = expirationDate({ date: msg.date!, minutes: 3 });
+    //     return true;
+    //   }
+    // });
+
+    return res.json({ message: "success" });
   } catch (err) {
     console.log(err);
     await notifications("BAD_REQUEST");
@@ -323,7 +357,11 @@ async function getNewUserMessage(line: string) {
 
 function addToSendQueue(phoneNumber: string, message: string) {
   console.log("ADD TO QUEUE: ", { phoneNumber, message });
-  sendSMSQueue.set({ phoneNumber, message, sendState: false });
+  sendSMSQueue.set({
+    phoneNumber,
+    message,
+    sendState: false,
+  });
 
   if (isSendingSMS) return;
 
@@ -385,8 +423,8 @@ function sendSMS(phoneNumber: string, msg: string) {
       } else if (data.includes("ERROR")) {
         parser.removeListener("data", onData);
 
-        await resetGSM(port, parser, gsmConfig);
         isSendingSMS = false;
+        await resetGSM(port, parser, gsmConfig);
 
         reject(`ERROR WHEN TRY SEND SMS: ${data}`);
       }
