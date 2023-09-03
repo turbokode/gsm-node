@@ -22,6 +22,7 @@ const MessageQueue_1 = require("./resources/MessageQueue");
 const configServer_1 = require("./resources/configServer");
 const expirationDate_1 = __importDefault(require("./resources/expirationDate"));
 const isEmpty_1 = require("./resources/isEmpty");
+const notifications_1 = require("./resources/notifications");
 const processUserMessage_1 = require("./resources/processUserMessage");
 const removeAccents_1 = require("./resources/removeAccents");
 const resetGSM_1 = require("./resources/resetGSM");
@@ -58,21 +59,20 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     catch (err) {
         console.log(err);
-        /**
-         * Gerar log do erro e enviar uma notificação para o admin!
-         */
+        yield (0, notifications_1.notifications)("BAD_REQUEST");
         res.status(500).json({ message: err });
     }
 }));
 app.get("/", (req, res) => {
-    return res.send("SMS Server").status(200);
+    return res.status(200).send("SMS Server");
 });
 app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, configServer_1.configServer)().catch((err) => {
-        if (process.env.ALERT_PHONE_NUMBER &&
-            !(0, isEmpty_1.isEmpty)(process.env.ALERT_PHONE_NUMBER))
-            addToSendQueue(process.env.ALERT_PHONE_NUMBER, err);
-    });
+    try {
+        yield (0, configServer_1.configServer)();
+    }
+    catch (error) {
+        yield (0, notifications_1.notifications)("NET_OFF", addToSendQueue);
+    }
     console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 }));
 // Create a port
@@ -113,9 +113,6 @@ function onExecuteCommand(data) {
         if (commandReceived)
             responses.push(data);
         if (commandReceived && data === "OK") {
-            /**
-             * Remove command form DB
-             */
             console.log(`${executingCommand}: SUCCESS EXECUTED!`);
             isExecutingCommand = false;
             commandReceived = false;
@@ -260,7 +257,7 @@ function processNextMessage() {
                 catch (error) {
                     const err = error;
                     console.log("POST ERROR: ", err.message);
-                    const message = "Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: +258824116651.\n\nEstamos a trabalhar arduamente para resolver o problema.";
+                    const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: ${process.env.ALERT_PHONE_NUMBER}.\n\nEstamos a trabalhar arduamente para resolver o problema.`;
                     addToSendQueue(newUserMessage.phoneNumber, message);
                 }
             }
@@ -304,9 +301,7 @@ function sendSMSManager() {
             }
             catch (error) {
                 console.log(`Failed when try to send SMS to ${toSendMessage.phoneNumber}: `, error);
-                /**
-                 * Save log
-                 */
+                yield (0, notifications_1.notifications)("SMS_LOS");
             }
             if (tryToSendSMSCounter < 2) {
                 sendSMSManager();
@@ -317,11 +312,6 @@ function sendSMSManager() {
 function sendSMS(phoneNumber, msg) {
     isSendingSMS = true;
     checkUnreadMessageInterval.refresh();
-    //============= DEBUG MODE ==================
-    // return new Promise((resolve) => {
-    //   isSendingSMS = false;
-    //   resolve("SMS SENT SUCCESSFULLY!");
-    // });
     return new Promise((resolve, reject) => {
         const sendIDRegex = /\+CMGS: (\d+)/;
         const message = (0, removeAccents_1.removeAccents)(msg);
@@ -372,7 +362,7 @@ function gsmConfig() {
             yield executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
         }
         catch (error) {
-            console.log(error);
+            yield (0, notifications_1.notifications)("GSM_OFF");
         }
     });
 }

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetGSM = void 0;
 const onoff_1 = require("onoff");
+const notifications_1 = require("./notifications");
 // Configuração do pino GPIO 23 como saída em nível alto (HIGH)
 const resetPin = new onoff_1.Gpio(23, "high");
 function resetGSM(port, parser, callBack) {
@@ -46,6 +47,7 @@ function resetGSM(port, parser, callBack) {
         }
         catch (error) {
             console.error("Error when try to restart GSM:", error);
+            yield (0, notifications_1.notifications)("GSM_OFF");
             reject(false);
         }
     }));

@@ -8,6 +8,8 @@ export async function notifications(
   addToSendQueue?: (phoneNumber: string, message: string) => void,
   content?: NotificationContentType
 ) {
+console.log("Notification: ",type);
+
   try {
     if (type === "NET_OFF") {
       const notificationMessage =
