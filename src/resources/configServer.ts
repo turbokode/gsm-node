@@ -27,6 +27,8 @@ export async function configServer(
         if (tryCounter === 10) {
           await notifications("NET_OFF", callBack);
 
+          await sleep(1000);
+
           reject(
             `Failed when try to send SMS Server URL to API! \n==========\n${data} `
           );
@@ -38,4 +40,8 @@ export async function configServer(
         tryCounter = 0;
       });
   });
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
