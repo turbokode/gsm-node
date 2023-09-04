@@ -249,7 +249,7 @@ async function getUnreadMessages() {
         }
       });
 
-      const onData = (data: string) => {
+      const onData = async (data: string) => {
         if (data.replace("\r", "") === 'AT+CMGL="REC UNREAD"')
           commandReceived = true;
 
@@ -258,6 +258,10 @@ async function getUnreadMessages() {
         } else if (data === "OK" && commandReceived) {
           parser.removeListener("data", onData);
           resolve(unreadMessages);
+        } else if (data == "ERROR" && commandReceived) {
+          parser.removeListener("data", onData);
+
+          await resetGSM(port, parser, gsmConfig);
         }
       };
 
