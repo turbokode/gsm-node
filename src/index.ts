@@ -103,7 +103,7 @@ app.listen(serverPort, async () => {
   try {
     await configServer(addToSendQueue);
   } catch (error) {
-    // await notifications("NET_OFF", addToSendQueue);
+    await notifications("NET_OFF", addToSendQueue);
   }
 
   console.log(`🚀 The SMS server is running in ${serverPort} port!`);
