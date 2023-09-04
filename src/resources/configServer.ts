@@ -22,7 +22,7 @@ export async function configServer() {
       })
       .catch(async ({ data }) => {
         if (tryCounter === 10)
-          reject(
+          throw new Error(
             `Failed when try to send SMS Server URL to API! \n==========\n${data} `
           );
 
