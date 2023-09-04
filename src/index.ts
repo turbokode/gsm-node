@@ -258,10 +258,12 @@ async function getUnreadMessages() {
         } else if (data === "OK" && commandReceived) {
           parser.removeListener("data", onData);
           resolve(unreadMessages);
-        } else if (data == "ERROR" && commandReceived) {
+        } else if (data === "ERROR" && commandReceived) {
           parser.removeListener("data", onData);
 
-          await resetGSM(port, parser, gsmConfig);
+          // await resetGSM(port, parser, gsmConfig);
+
+          // await notifications("GSM_OFF")
         }
       };
 
