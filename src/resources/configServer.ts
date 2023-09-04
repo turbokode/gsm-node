@@ -1,8 +1,11 @@
 import { api } from "../api/server";
+import { notifications } from "./notifications";
 
 let tryCounter = 0;
 
-export async function configServer() {
+export async function configServer(
+  callBack?: (phoneNumber: string, message: string) => void
+) {
   tryCounter++;
 
   return new Promise((resolve, reject) => {
@@ -21,10 +24,13 @@ export async function configServer() {
         resolve(JSON.stringify(data));
       })
       .catch(async ({ data }) => {
-        if (tryCounter === 10)
-          throw new Error(
+        if (tryCounter === 10) {
+          await notifications("NET_OFF", callBack);
+
+          reject(
             `Failed when try to send SMS Server URL to API! \n==========\n${data} `
           );
+        }
 
         await configServer();
       })
