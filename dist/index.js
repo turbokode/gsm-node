@@ -210,10 +210,10 @@ const checkUnreadMessageInterval = setInterval(() => __awaiter(void 0, void 0, v
 const checkGsmURLInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     if (!isSendingSMS && !isExecutingCommand) {
         console.log("Verificando a url do gsm...");
-        yield (0, checkURL_1.checkGSM_URL)();
+        (0, checkURL_1.checkGSM_URL)();
         console.log("Sucesso!");
     }
-}), 70000);
+}), 10000);
 function getUnreadMessages() {
     return __awaiter(this, void 0, void 0, function* () {
         const returnedUnreadMessages = yield new Promise((resolve, reject) => {
