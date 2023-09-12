@@ -7,6 +7,7 @@ import { ReadlineParser, SerialPort } from "serialport";
 import { MessageType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
+import { checkGSM_URL } from "./resources/checkURL";
 import { configServer } from "./resources/configServer";
 import expirationDate from "./resources/expirationDate";
 import { isEmpty, isStringEmpty } from "./resources/isEmpty";
@@ -233,6 +234,12 @@ const checkUnreadMessageInterval = setInterval(async () => {
     await getUnreadMessages();
   }
 }, 35000);
+
+const checkGsmURLInterval = setInterval(async () => {
+  if (!isSendingSMS && !isExecutingCommand) {
+    await checkGSM_URL();
+  }
+}, 70000);
 
 async function getUnreadMessages() {
   const returnedUnreadMessages = await new Promise<string[]>(
