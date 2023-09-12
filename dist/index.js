@@ -19,6 +19,7 @@ const express_1 = __importDefault(require("express"));
 const serialport_1 = require("serialport");
 const server_1 = require("./api/server");
 const MessageQueue_1 = require("./resources/MessageQueue");
+const checkURL_1 = require("./resources/checkURL");
 const configServer_1 = require("./resources/configServer");
 const expirationDate_1 = __importDefault(require("./resources/expirationDate"));
 const isEmpty_1 = require("./resources/isEmpty");
@@ -206,6 +207,11 @@ const checkUnreadMessageInterval = setInterval(() => __awaiter(void 0, void 0, v
         yield getUnreadMessages();
     }
 }), 35000);
+const checkGsmURLInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+    if (!isSendingSMS && !isExecutingCommand) {
+        yield (0, checkURL_1.checkGSM_URL)();
+    }
+}), 70000);
 function getUnreadMessages() {
     return __awaiter(this, void 0, void 0, function* () {
         const returnedUnreadMessages = yield new Promise((resolve, reject) => {
