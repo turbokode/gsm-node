@@ -13,6 +13,7 @@ exports.notifications = void 0;
 const server_1 = require("../api/server");
 function notifications(type, addToSendQueue, content) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("Notification: ", type);
         try {
             if (type === "NET_OFF") {
                 const notificationMessage = "SWITCH MASTER ERROR:\n\n O sistema de SMS não conseguiu se conectar ao servidor central!";

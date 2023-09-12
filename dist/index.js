@@ -22,6 +22,7 @@ const MessageQueue_1 = require("./resources/MessageQueue");
 const configServer_1 = require("./resources/configServer");
 const expirationDate_1 = __importDefault(require("./resources/expirationDate"));
 const isEmpty_1 = require("./resources/isEmpty");
+const isValidValue_1 = require("./resources/isValidValue");
 const notifications_1 = require("./resources/notifications");
 const processUserMessage_1 = require("./resources/processUserMessage");
 const removeAccents_1 = require("./resources/removeAccents");
@@ -63,12 +64,37 @@ app.get("/check_sys", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(500).json({ message: err });
     }
 }));
+app.get("/check_device", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { deviceSIMNumber, checkCode } = req.params;
+    try {
+        if ((0, isEmpty_1.isEmpty)(deviceSIMNumber))
+            throw new Error("The Phone number cannot be null!");
+        if ((0, isValidValue_1.isValidPhoneNumber)(deviceSIMNumber, "ALL"))
+            throw new Error("Invalid phone number!");
+        if ((0, isEmpty_1.isEmpty)(checkCode))
+            throw new Error("The check code cannot be null!");
+        addToSendQueue(deviceSIMNumber, checkCode);
+        // const messageList = sendSMSQueue.getAll();
+        // const sendMessage = messageList.find((msg) => {
+        //   if (msg.phoneNumber === deviceSIMNumber && msg.sendState) {
+        //     // const passTime = expirationDate({ date: msg.date!, minutes: 3 });
+        //     return true;
+        //   }
+        // });
+        return res.json({ message: "success" });
+    }
+    catch (err) {
+        console.log(err);
+        yield (0, notifications_1.notifications)("BAD_REQUEST");
+        res.status(500).json({ message: err });
+    }
+}));
 app.get("/", (req, res) => {
     return res.status(200).send("SMS Server");
 });
 app.listen(serverPort, () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield (0, configServer_1.configServer)();
+        yield (0, configServer_1.configServer)(addToSendQueue);
     }
     catch (error) {
         yield (0, notifications_1.notifications)("NET_OFF", addToSendQueue);
@@ -192,7 +218,7 @@ function getUnreadMessages() {
                     yield (0, resetGSM_1.resetGSM)(port, parser, gsmConfig);
                 }
             }));
-            const onData = (data) => {
+            const onData = (data) => __awaiter(this, void 0, void 0, function* () {
                 if (data.replace("\r", "") === 'AT+CMGL="REC UNREAD"')
                     commandReceived = true;
                 if (selectUnreadMessageRegex.test(data)) {
@@ -202,7 +228,12 @@ function getUnreadMessages() {
                     parser.removeListener("data", onData);
                     resolve(unreadMessages);
                 }
-            };
+                else if (data === "ERROR" && commandReceived) {
+                    parser.removeListener("data", onData);
+                    // await resetGSM(port, parser, gsmConfig);
+                    // await notifications("GSM_OFF")
+                }
+            });
             parser.on("data", onData);
         });
         const queues = returnedUnreadMessages.map((message) => {
@@ -281,7 +312,11 @@ function getNewUserMessage(line) {
 }
 function addToSendQueue(phoneNumber, message) {
     console.log("ADD TO QUEUE: ", { phoneNumber, message });
-    sendSMSQueue.set({ phoneNumber, message, sendState: false });
+    sendSMSQueue.set({
+        phoneNumber,
+        message,
+        sendState: false,
+    });
     if (isSendingSMS)
         return;
     sendSMSManager();
@@ -331,8 +366,8 @@ function sendSMS(phoneNumber, msg) {
             }
             else if (data.includes("ERROR")) {
                 parser.removeListener("data", onData);
-                yield (0, resetGSM_1.resetGSM)(port, parser, gsmConfig);
                 isSendingSMS = false;
+                yield (0, resetGSM_1.resetGSM)(port, parser, gsmConfig);
                 reject(`ERROR WHEN TRY SEND SMS: ${data}`);
             }
         });

@@ -11,8 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.configServer = void 0;
 const server_1 = require("../api/server");
+const notifications_1 = require("./notifications");
 let tryCounter = 0;
-function configServer() {
+function configServer(callBack) {
     return __awaiter(this, void 0, void 0, function* () {
         tryCounter++;
         return new Promise((resolve, reject) => {
@@ -26,8 +27,11 @@ function configServer() {
                 resolve(JSON.stringify(data));
             })
                 .catch(({ data }) => __awaiter(this, void 0, void 0, function* () {
-                if (tryCounter === 10)
+                if (tryCounter === 10) {
+                    yield (0, notifications_1.notifications)("NET_OFF", callBack);
+                    yield sleep(1000);
                     reject(`Failed when try to send SMS Server URL to API! \n==========\n${data} `);
+                }
                 yield configServer();
             }))
                 .finally(() => {
@@ -37,3 +41,6 @@ function configServer() {
     });
 }
 exports.configServer = configServer;
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
