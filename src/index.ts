@@ -237,11 +237,10 @@ const checkUnreadMessageInterval = setInterval(async () => {
 
 const checkGsmURLInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
-    console.log("Verificando a url do gsm...");
-    checkGSM_URL();
-    console.log("Sucesso!");
+    console.log(`Verificando a url do gsm:${process.env.GSM_PORT}`);
+    await checkGSM_URL();
   }
-}, 10000);
+}, 65000);
 
 async function getUnreadMessages() {
   const returnedUnreadMessages = await new Promise<string[]>(
