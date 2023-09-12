@@ -14,19 +14,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkGSM_URL = void 0;
 const axios_1 = __importDefault(require("axios"));
+let tryCounter = 0;
 function checkGSM_URL() {
     return __awaiter(this, void 0, void 0, function* () {
+        tryCounter++;
         process.env.GSM_PORT &&
             axios_1.default
                 .post(process.env.GSM_PORT)
-                .catch((err) => {
-                throw new Error(err);
-            })
                 .then((res) => {
                 if (res.status !== 200) {
                     throw new Error("The GSM URL is not working good!");
                 }
-            });
+            })
+                .catch((err) => __awaiter(this, void 0, void 0, function* () {
+                if (tryCounter === 5) {
+                    yield sleep(1000);
+                    throw new Error(err);
+                }
+                yield checkGSM_URL();
+            }));
     });
 }
 exports.checkGSM_URL = checkGSM_URL;
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
