@@ -20,7 +20,7 @@ function checkGSM_URL() {
         tryCounter++;
         process.env.GSM_PORT &&
             axios_1.default
-                .post(process.env.GSM_PORT)
+                .get(`${process.env.GSM_PORT}/`)
                 .then((res) => {
                 if (res.status !== 200) {
                     throw new Error("The GSM URL is not working good!");
