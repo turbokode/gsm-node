@@ -209,11 +209,10 @@ const checkUnreadMessageInterval = setInterval(() => __awaiter(void 0, void 0, v
 }), 35000);
 const checkGsmURLInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     if (!isSendingSMS && !isExecutingCommand) {
-        console.log("Verificando a url do gsm...");
-        (0, checkURL_1.checkGSM_URL)();
-        console.log("Sucesso!");
+        console.log(`Verificando a url do gsm:${process.env.GSM_PORT}`);
+        yield (0, checkURL_1.checkGSM_URL)();
     }
-}), 10000);
+}), 65000);
 function getUnreadMessages() {
     return __awaiter(this, void 0, void 0, function* () {
         const returnedUnreadMessages = yield new Promise((resolve, reject) => {
