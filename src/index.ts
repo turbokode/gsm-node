@@ -232,6 +232,7 @@ function executeCommand(command: string) {
 const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
     await getUnreadMessages();
+    sendSMSManager();
   }
 }, 35000);
 
