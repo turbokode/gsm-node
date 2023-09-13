@@ -4,7 +4,7 @@ import { isAfter } from "date-fns";
 import "dotenv/config";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
-import { MessageType } from "./@types/app";
+import { MessageType, NotificationType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import { checkGSM_URL } from "./resources/checkURL";
@@ -116,6 +116,7 @@ const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
 /* ============== USER COMMUNICATION SYSTEM ============== */
 let lastSentMessage: MessageType | undefined = undefined;
+let notificationRegister: NotificationType[] | undefined;
 let newMessageQueue = new Array<string>();
 const sendSMSQueue = new MessageQueue();
 let commandExecutionsCounter = 0;
@@ -388,7 +389,7 @@ async function sendSMSManager() {
   console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
   console.log("toSendMessage: ", toSendMessage);
 
-  if (toSendMessage && !toSendMessage.sendState) {
+  if (toSendMessage && !toSendMessage.sendState && tryToSendSMSCounter < 2) {
     if (lastSentMessage === toSendMessage) tryToSendSMSCounter++;
     lastSentMessage = toSendMessage;
 
@@ -406,9 +407,7 @@ async function sendSMSManager() {
       await notifications("SMS_LOS");
     }
 
-    if (tryToSendSMSCounter < 2) {
-      sendSMSManager();
-    }
+    sendSMSManager();
   }
 }
 

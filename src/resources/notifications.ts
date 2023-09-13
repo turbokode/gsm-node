@@ -1,14 +1,25 @@
+import { NotificationType, SystemNotificationType } from "../@types/app";
 import { api } from "../api/server";
-
-type SystemNotificationType = "NET_OFF" | "SMS_LOS" | "GSM_OFF" | "BAD_REQUEST";
-type NotificationContentType = { code?: string; message: string };
 
 export async function notifications(
   type: SystemNotificationType,
   addToSendQueue?: (phoneNumber: string, message: string) => void,
-  content?: NotificationContentType
+  notificationRegister?: NotificationType[]
 ) {
-console.log("Notification: ",type);
+  console.log("Notification: ", type);
+
+  // notificationRegister?.forEach((notification) => {
+  //   switch (notification.type) {
+  //     case "NET_OFF":
+  //       break;
+  //     case "SMS_LOS":
+  //       break;
+  //     case "GSM_OFF":
+  //       break;
+  //     case "BAD_REQUEST":
+  //       break;
+  //   }
+  // });
 
   try {
     if (type === "NET_OFF") {
