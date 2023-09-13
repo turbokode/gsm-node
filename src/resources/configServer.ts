@@ -10,16 +10,7 @@ export async function configServer(
 
   return new Promise((resolve, reject) => {
     api
-      .post(
-        "/configSystem/save",
-        { smsServerURL: process.env.GSM_PORT },
-        {
-          headers: {
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTMwMjYxMzYsImV4cCI6MTAzMzI5Mzk3MzYsInN1YiI6ImQ2MTY4ODk3LWI1MGMtNGE5Yy04ZTg3LWZmYjNlMmY1ZTBmNSJ9.1a9lMAmQjIEoVWUkAnNa46K-aJbSSmLbiFjfdjPlcoQ",
-          },
-        }
-      )
+      .post("/configSystem/save", { smsServerURL: process.env.GSM_PORT })
       .then(({ data }) => {
         resolve(JSON.stringify(data));
       })
