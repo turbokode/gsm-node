@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,31 +31,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkGSM_URL = void 0;
-const axios_1 = __importDefault(require("axios"));
+const axios_1 = __importStar(require("axios"));
 let tryCounter = 0;
 function checkGSM_URL() {
     return __awaiter(this, void 0, void 0, function* () {
         tryCounter++;
-        process.env.GSM_PORT &&
-            axios_1.default
-                .get(`${process.env.GSM_PORT}/`)
-                .then((res) => {
+        try {
+            if (process.env.GSM_PORT) {
+                const res = yield axios_1.default.get(`${process.env.GSM_PORT}/`);
                 if (res.status !== 200) {
                     throw new Error("The GSM URL is not working good!");
                 }
-            })
-                .catch((err) => __awaiter(this, void 0, void 0, function* () {
-                if (tryCounter === 5) {
-                    yield sleep(1000);
-                    throw new Error(err);
-                }
-                yield checkGSM_URL();
-            }));
+            }
+        }
+        catch (error) {
+            const err = error;
+            if (tryCounter === 5) {
+                yield sleep(1000);
+                if (err instanceof axios_1.AxiosError)
+                    throw new Error(err.message);
+                throw new Error(err);
+            }
+            yield checkGSM_URL();
+        }
     });
 }
 exports.checkGSM_URL = checkGSM_URL;

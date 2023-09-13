@@ -205,6 +205,7 @@ function executeCommand(command) {
 const checkUnreadMessageInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     if (!isSendingSMS && !isExecutingCommand) {
         yield getUnreadMessages();
+        sendSMSManager();
     }
 }), 35000);
 const checkGsmURLInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
