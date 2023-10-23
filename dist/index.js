@@ -107,6 +107,7 @@ const port = new serialport_1.SerialPort({ path: "/dev/serial0", baudRate: 11520
 const parser = port.pipe(new serialport_1.ReadlineParser({ delimiter: "\r\n" }));
 /* ============== USER COMMUNICATION SYSTEM ============== */
 let lastSentMessage = undefined;
+let notificationRegister;
 let newMessageQueue = new Array();
 const sendSMSQueue = new MessageQueue_1.MessageQueue();
 let commandExecutionsCounter = 0;
@@ -334,7 +335,7 @@ function sendSMSManager() {
         const toSendMessage = sendSMSQueue.getNext();
         console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
         console.log("toSendMessage: ", toSendMessage);
-        if (toSendMessage && !toSendMessage.sendState) {
+        if (toSendMessage && !toSendMessage.sendState && tryToSendSMSCounter < 2) {
             if (lastSentMessage === toSendMessage)
                 tryToSendSMSCounter++;
             lastSentMessage = toSendMessage;
@@ -346,9 +347,7 @@ function sendSMSManager() {
                 console.log(`Failed when try to send SMS to ${toSendMessage.phoneNumber}: `, error);
                 yield (0, notifications_1.notifications)("SMS_LOS");
             }
-            if (tryToSendSMSCounter < 2) {
-                sendSMSManager();
-            }
+            sendSMSManager();
         }
     });
 }

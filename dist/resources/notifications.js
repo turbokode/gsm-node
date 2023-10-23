@@ -11,9 +11,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.notifications = void 0;
 const server_1 = require("../api/server");
-function notifications(type, addToSendQueue, content) {
+function notifications(type, addToSendQueue, notificationRegister) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Notification: ", type);
+        // notificationRegister?.forEach((notification) => {
+        //   switch (notification.type) {
+        //     case "NET_OFF":
+        //       break;
+        //     case "SMS_LOS":
+        //       break;
+        //     case "GSM_OFF":
+        //       break;
+        //     case "BAD_REQUEST":
+        //       break;
+        //   }
+        // });
         try {
             if (type === "NET_OFF") {
                 const notificationMessage = "SWITCH MASTER ERROR:\n\n O sistema de SMS não conseguiu se conectar ao servidor central!";
