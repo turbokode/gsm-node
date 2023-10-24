@@ -78,15 +78,6 @@ app.get("/check_device", async (req, res) => {
 
     addToSendQueue(deviceSIMNumber, checkCode);
 
-    // const messageList = sendSMSQueue.getAll();
-
-    // const sendMessage = messageList.find((msg) => {
-    //   if (msg.phoneNumber === deviceSIMNumber && msg.sendState) {
-    //     // const passTime = expirationDate({ date: msg.date!, minutes: 3 });
-    //     return true;
-    //   }
-    // });
-
     return res.json({ message: "success" });
   } catch (err) {
     console.log(err);
