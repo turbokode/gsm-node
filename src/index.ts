@@ -8,7 +8,6 @@ import { MessageType, NotificationType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import { checkGSM_URL } from "./resources/checkURL";
-import { configServer } from "./resources/configServer";
 import expirationDate from "./resources/expirationDate";
 import { isEmpty, isStringEmpty } from "./resources/isEmpty";
 import { isValidPhoneNumber } from "./resources/isValidValue";
@@ -92,12 +91,6 @@ app.get("/", (req, res) => {
 });
 
 app.listen(serverPort, async () => {
-  try {
-    await configServer(addToSendQueue);
-  } catch (error) {
-    await notifications("NET_OFF", addToSendQueue);
-  }
-
   console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 });
 
