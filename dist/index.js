@@ -75,13 +75,6 @@ app.get("/check_device", (req, res) => __awaiter(void 0, void 0, void 0, functio
         if ((0, isEmpty_1.isEmpty)(checkCode))
             throw new Error("The check code cannot be null!");
         addToSendQueue(deviceSIMNumber, checkCode);
-        // const messageList = sendSMSQueue.getAll();
-        // const sendMessage = messageList.find((msg) => {
-        //   if (msg.phoneNumber === deviceSIMNumber && msg.sendState) {
-        //     // const passTime = expirationDate({ date: msg.date!, minutes: 3 });
-        //     return true;
-        //   }
-        // });
         return res.json({ message: "success" });
     }
     catch (err) {

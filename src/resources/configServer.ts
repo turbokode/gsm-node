@@ -10,7 +10,7 @@ export async function configServer(
 
   return new Promise((resolve, reject) => {
     api
-      .post("/configSystem/save", { smsServerURL: process.env.GSM_PORT })
+      .post("/configSystem/save", { smsServerURL: "http://localhost:3001" })
       .then(({ data }) => {
         resolve(JSON.stringify(data));
       })
