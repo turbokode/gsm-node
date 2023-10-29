@@ -17,3 +17,25 @@ export type NotificationType = {
   index: number;
   date: Date;
 };
+
+export interface GSM_Response<T> {
+  status: string;
+  request: string;
+  data: T[];
+}
+
+export interface SMS_ResponseType {
+  sender: string;
+  message: string;
+  index: number;
+  msgStatus: number;
+  dateTimeSent: string;
+  header: SMSHeader;
+}
+
+export interface SMSHeader {
+  encoding: string;
+  smsc: string;
+  smscType: string;
+  smscPlan: string;
+}

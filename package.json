@@ -25,6 +25,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "onoff": "^6.0.3",
-    "serialport": "^11.0.0"
+    "serialport": "^11.0.0",
+    "serialport-gsm": "^4.0.1"
   }
 }
