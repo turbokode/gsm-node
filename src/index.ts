@@ -18,12 +18,21 @@ app.use(express.json());
 app.use(cors());
 
 app.post("/send_sms", async (req, res) => {
-  const { phoneNumber, message } = req.body;
+  const { phoneNumber, message } = req.body as {
+    phoneNumber: string;
+    message: string;
+  };
 
   console.log("SEND SMS REQUEST: ", { phoneNumber, message });
 
   try {
-    modem.sendSMS(phoneNumber, message, false);
+    const toSendPhoneNumber = phoneNumber.startsWith("+258")
+      ? phoneNumber
+      : phoneNumber.startsWith("258")
+      ? "+" + phoneNumber
+      : "+258" + phoneNumber;
+
+    modem.sendSMS(toSendPhoneNumber, message, false);
 
     res.json({ message: "success" });
   } catch (err) {
