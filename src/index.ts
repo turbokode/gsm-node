@@ -23,7 +23,7 @@ app.post("/send_sms", async (req, res) => {
   console.log("SEND SMS REQUEST: ", { phoneNumber, message });
 
   try {
-    modem.sendSMS("+258" + phoneNumber, message, false);
+    modem.sendSMS(phoneNumber, message, false);
 
     res.json({ message: "success" });
   } catch (err) {
