@@ -6,10 +6,10 @@ import { GSM_Response, SMS_ResponseType } from "./@types/app";
 import { api } from "./api/server";
 import { configGSM } from "./resources/configParams";
 
-const serialportgsm = require("serialport-gsm");
+let serialportgsm = require("serialport-gsm");
 
 let modem = serialportgsm.Modem();
-
+/*
 const app = express();
 
 const serverPort = process.env.PORT;
@@ -35,25 +35,27 @@ app.post("/send_sms", async (req, res) => {
 app.listen(serverPort, async () => {
   console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 });
+*/
 
 modem.open(configGSM.serialCOM, configGSM.options, () => {
   console.log("GSM communication is Open!");
 });
 
-modem.on("open", (data: object) => {
-  modem.initializeModem(() => {
-    console.log(data);
-  });
+modem.on('open', (data : object) => {
+    modem.initializeModem((dat : object) =>{console.log(data)})
+    modem.getSimInbox((data : object)=>{console.log("SMS: ",JSON.stringify(data))})
+})
 
-  modem.setModemMode((dataLocal: object) => {
-    console.log(dataLocal);
-  }, "PDU");
+//modem.on('onNewMessage', (data:object)=>{console.log("New Message: ", JSON.stringify(data))})
+
+modem.deleteAllSimMessages((dataLocal: object)=>{
+console.log("DELETE: ",dataLocal);
 });
 
 modem.on("onNewMessage", (data: GSM_Response<SMS_ResponseType>) => {
-  console.log("New Message: ", data.data);
+  console.log("New Message: ", data);
 
-  data.data.forEach(async (smsData) => {
+/*  data.data.forEach(async (smsData) => {
     try {
       const response = await api.post("/system_gate_way", {
         phoneNumber: smsData.sender,
@@ -69,5 +71,5 @@ modem.on("onNewMessage", (data: GSM_Response<SMS_ResponseType>) => {
 
       modem.sendSMS(smsData.sender, message, false);
     }
-  });
+  });*/
 });
