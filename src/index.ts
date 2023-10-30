@@ -9,7 +9,7 @@ import { configGSM } from "./resources/configParams";
 let serialportgsm = require("serialport-gsm");
 
 let modem = serialportgsm.Modem();
-/*
+
 const app = express();
 
 const serverPort = process.env.PORT;
@@ -35,41 +35,50 @@ app.post("/send_sms", async (req, res) => {
 app.listen(serverPort, async () => {
   console.log(`🚀 The SMS server is running in ${serverPort} port!`);
 });
-*/
 
 modem.open(configGSM.serialCOM, configGSM.options, () => {
-  console.log("GSM communication is Open!");
+  console.log("GSM communication is Started!");
 });
 
-modem.on('open', (data : object) => {
-    modem.initializeModem((dat : object) =>{console.log(data)})
-    modem.getSimInbox((data : object)=>{console.log("SMS: ",JSON.stringify(data))})
-})
+modem.on("open", (data: object) => {
+  console.log("GSM communication is open: ", data);
 
-//modem.on('onNewMessage', (data:object)=>{console.log("New Message: ", JSON.stringify(data))})
+  modem.initializeModem((dat: object) => {
+    console.log("GSM initialize: ", dat);
+  });
 
-modem.deleteAllSimMessages((dataLocal: object)=>{
-console.log("DELETE: ",dataLocal);
+  modem.getSimInbox((data: GSM_Response<SMS_ResponseType>) => {
+    console.log("Inbox SMS: ", data);
+
+    data.data.forEach(async (smsData) => {
+      await postRequest(smsData);
+      modem.deleteMessage(smsData);
+    });
+  });
 });
 
-modem.on("onNewMessage", (data: GSM_Response<SMS_ResponseType>) => {
+modem.on("onNewMessage", (data: SMS_ResponseType[]) => {
   console.log("New Message: ", data);
 
-/*  data.data.forEach(async (smsData) => {
-    try {
-      const response = await api.post("/system_gate_way", {
-        phoneNumber: smsData.sender,
-        content: smsData.message,
-      });
-
-      console.log("POST TO SERVER EXECUTED: ", response.data);
-    } catch (error) {
-      const err = error as AxiosError;
-
-      console.log("POST ERROR: ", err.message);
-      const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n\nAjuda: ${process.env.ALERT_PHONE_NUMBER}.`;
-
-      modem.sendSMS(smsData.sender, message, false);
-    }
-  });*/
+  data.forEach(async (smsData) => {
+    await postRequest(smsData);
+  });
 });
+
+async function postRequest(smsData: SMS_ResponseType) {
+  try {
+    const response = await api.post("/system_gate_way", {
+      phoneNumber: "+" + smsData.sender,
+      content: smsData.message,
+    });
+
+    console.log("POST TO SERVER EXECUTED: ", response.data);
+  } catch (error) {
+    const err = error as AxiosError;
+
+    console.log("POST ERROR: ", err.message);
+    const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n\nAjuda: ${process.env.ALERT_PHONE_NUMBER}.`;
+
+    modem.sendSMS(smsData.sender, message, false);
+  }
+}
