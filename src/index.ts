@@ -60,7 +60,7 @@ modem.on("open", (data: object) => {
   modem.getSimInbox((data: GSM_Response<SMS_ResponseType>) => {
     console.log("Inbox SMS: ", data);
 
-    data.data.forEach(async (smsData) => {
+data && data.data.forEach(async (smsData) => {
       await postRequest(smsData);
       modem.deleteMessage(smsData);
     });
