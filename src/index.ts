@@ -9,6 +9,7 @@ import { configGSM } from "./resources/configParams";
 let serialportgsm = require("serialport-gsm");
 
 let modem = serialportgsm.Modem();
+const receivedSMS = new Map<string, SMS_ResponseType>();
 
 const app = express();
 
