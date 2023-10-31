@@ -28,6 +28,7 @@ export interface SMS_ResponseType {
   sender: string;
   message: string;
   index: number;
+  readStatus: boolean;
   msgStatus: number;
   dateTimeSent: string;
   header: SMSHeader;

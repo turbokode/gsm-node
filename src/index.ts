@@ -102,21 +102,7 @@ modem.on("open", () => {
           console.log(`Sim Memory Result: ${JSON.stringify(result)}`);
 
           // read the whole SIM card inbox
-          modem.getSimInbox(
-            (result: GSM_Response<SMS_ResponseType>, err: object) => {
-              if (err) {
-                console.log(`Failed to get SimInbox ${err}`);
-              } else {
-                console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
-
-                result &&
-                  result.data.forEach(async (smsData) => {
-                    await postRequest(smsData);
-                    modem.deleteMessage(smsData);
-                  });
-              }
-            }
-          );
+          getSimInbox();
         }
       });
     }
@@ -131,7 +117,9 @@ modem.on("open", () => {
     console.log("New Message: ", data);
 
     data.forEach(async (smsData) => {
-      await postRequest(smsData);
+      const id = smsData.sender + smsData.dateTimeSent;
+      if (!receivedSMS.has(id))
+        receivedSMS.set(id, { ...smsData, readStatus: false });
     });
   });
 
@@ -155,6 +143,21 @@ modem.open(configGSM.serialCOM, configGSM.options, () => {
   console.log("GSM communication is Started!");
 });
 
+setInterval(() => {
+  getSimInbox();
+}, 7000);
+
+setInterval(() => {
+  receivedSMS.forEach(async (smsData) => {
+    if (!smsData.readStatus) {
+      const id = smsData.sender + smsData.dateTimeSent;
+
+      await postRequest(smsData);
+      receivedSMS.set(id, { ...smsData, readStatus: true });
+    }
+  });
+}, 3000);
+
 async function postRequest(smsData: SMS_ResponseType) {
   try {
     const response = await api.post("/system_gate_way", {
@@ -171,4 +174,22 @@ async function postRequest(smsData: SMS_ResponseType) {
 
     modem.sendSMS(smsData.sender, message, false);
   }
+}
+
+function getSimInbox() {
+  modem.getSimInbox((result: GSM_Response<SMS_ResponseType>, err: object) => {
+    if (err) {
+      console.log(`Failed to get SimInbox ${err}`);
+    } else {
+      console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
+
+      result &&
+        result.data.forEach(async (smsData) => {
+          const id = smsData.sender + smsData.dateTimeSent;
+          if (!receivedSMS.has(id))
+            receivedSMS.set(id, { ...smsData, readStatus: false });
+          modem.deleteMessage(smsData);
+        });
+    }
+  });
 }
