@@ -70,7 +70,7 @@ modem.on("open", () => {
             if (err) {
               console.log(`Error retrieving Signal Strength - ${err}`);
             } else {
-              console.log(`Signal Strength: ${result}`);
+              console.log(`Signal Strength: ${JSON.stringify(result)}`);
             }
           });
 
@@ -79,7 +79,7 @@ modem.on("open", () => {
             if (err) {
               console.log(`Error retrieving ModemSerial - ${err}`);
             } else {
-              console.log(`Modem Serial: ${result}`);
+              console.log(`Modem Serial: ${JSON.stringify(result)}`);
             }
           });
 
@@ -88,7 +88,7 @@ modem.on("open", () => {
             if (err) {
               console.log(`Error retrieving own Number - ${err}`);
             } else {
-              console.log(`Own number: ${result}`);
+              console.log(`Own number: ${JSON.stringify(result)}`);
             }
           });
         }
