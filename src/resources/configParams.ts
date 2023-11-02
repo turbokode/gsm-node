@@ -14,7 +14,6 @@ export const configGSM = {
     incomingSMSIndication: true,
     pin: "",
     customInitCommand: "",
-    cnmiCommand: "AT+CNMI=2,1,0,2,1",
   },
   serialCOM: "/dev/serial0",
 };
