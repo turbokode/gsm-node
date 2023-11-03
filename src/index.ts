@@ -453,7 +453,7 @@ const checkUnreadMessageInterval = setInterval(async () => {
   }
 }, 35000);
 
-const restartTime = 15 * 60 * 1000;
+const restartTime = 5 * 60 * 1000;
 const restartAllSystemTimer = setTimeout(() => {
   if (!isSendingSMS && !isExecutingCommand) {
     console.log("Restart Sys!");
