@@ -126,8 +126,6 @@ parser.on("data", (data) => {
   console.log("GSM MESSAGE: ", data);
   if (isExecutingCommand) onExecuteCommand(data);
   if (data.startsWith("+CMTI:")) newSMS(data);
-
-  restartAllSystemTimer.refresh();
 });
 
 async function onExecuteCommand(data: string) {
@@ -265,6 +263,8 @@ async function getUnreadMessages() {
 
 function newSMS(gsmMessage: string) {
   console.log("NEW SMS: ", gsmMessage);
+  restartAllSystemTimer.refresh();
+
   tryToSendSMSCounter = 0;
 
   if (newMessageQueue.length > 0) newMessageQueue.push(gsmMessage);
