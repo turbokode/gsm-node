@@ -448,7 +448,7 @@ function sendSMS(phoneNumber: string, msg: string) {
 
 async function gsmConfig() {
   try {
-    await executeCommand("ATZ").then((res) => console.log(res));
+    await executeCommand("AT").then((res) => console.log(res));
     await executeCommand("AT+CMGF=1").then((res) => console.log(res));
     await executeCommand(`AT+CMGDA="DEL READ"`).then((res) => console.log(res));
     await executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
@@ -459,7 +459,7 @@ async function gsmConfig() {
 
 const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
-    await executeCommand("ATZ").then((res) => console.log(res));
+    await executeCommand("AT").then((res) => console.log(res));
     await getUnreadMessages();
     sendSMSManager();
   }
