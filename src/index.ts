@@ -451,10 +451,16 @@ const checkUnreadMessageInterval = setInterval(async () => {
     await getUnreadMessages();
     sendSMSManager();
   }
+
+  console.log(
+    "!isSendingSMS && !isExecutingCommand: ",
+    !isSendingSMS && !isExecutingCommand
+  );
 }, 35000);
 
-const restartTime = 5 * 60 * 1000;
+const restartTime = 60 * 1000;
 const restartAllSystemTimer = setTimeout(() => {
+  console.log("Restart timer!");
   if (!isSendingSMS && !isExecutingCommand) {
     console.log("Restart Sys!");
     process.exit(0);
