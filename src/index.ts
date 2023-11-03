@@ -122,6 +122,8 @@ let isSendingSMS = false;
 port.on("open", async () => {
   console.log("Serial port is open!");
 
+  await resetGSM(port, parser, gsmConfig);
+
   await gsmConfig();
 
   await getUnreadMessages();
@@ -446,7 +448,7 @@ function sendSMS(phoneNumber: string, msg: string) {
 
 async function gsmConfig() {
   try {
-    await executeCommand("AT").then((res) => console.log(res));
+    await executeCommand("ATZ").then((res) => console.log(res));
     await executeCommand("AT+CMGF=1").then((res) => console.log(res));
     await executeCommand(`AT+CMGDA="DEL READ"`).then((res) => console.log(res));
     await executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
