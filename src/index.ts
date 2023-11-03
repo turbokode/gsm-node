@@ -459,12 +459,13 @@ async function gsmConfig() {
 
 const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
+    await executeCommand("ATZ").then((res) => console.log(res));
     await getUnreadMessages();
     sendSMSManager();
   }
 }, 35000);
 
-const restartTime = 2 * 60 * 1000;
+const restartTime = 15 * 60 * 1000;
 const restartAllSystemTimer = setInterval(() => {
   console.log("Restart timer!");
   if (!isSendingSMS && !isExecutingCommand && !isExecutingAPIRequest) {
