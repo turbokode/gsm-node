@@ -126,6 +126,8 @@ parser.on("data", (data) => {
   console.log("GSM MESSAGE: ", data);
   if (isExecutingCommand) onExecuteCommand(data);
   if (data.startsWith("+CMTI:")) newSMS(data);
+
+  restartAllSystemTimer.refresh();
 });
 
 async function onExecuteCommand(data: string) {
@@ -212,13 +214,6 @@ function executeCommand(command: string) {
     });
   });
 }
-
-const checkUnreadMessageInterval = setInterval(async () => {
-  if (!isSendingSMS && !isExecutingCommand) {
-    await getUnreadMessages();
-    sendSMSManager();
-  }
-}, 35000);
 
 async function getUnreadMessages() {
   const returnedUnreadMessages = await new Promise<string[]>(
@@ -396,7 +391,7 @@ function sendSMS(phoneNumber: string, msg: string) {
     const message = removeAccents(msg);
     const endMessageIndicator = Buffer.from([26]);
 
-  let sendCommandExecuted = false;
+    let sendCommandExecuted = false;
     const onData = async (data: string) => {
       console.log("SEND: ", data);
       if (sendIDRegex.test(data)) sendCommandExecuted = true;
@@ -451,3 +446,18 @@ async function gsmConfig() {
     await notifications("GSM_OFF");
   }
 }
+
+const checkUnreadMessageInterval = setInterval(async () => {
+  if (!isSendingSMS && !isExecutingCommand) {
+    await getUnreadMessages();
+    sendSMSManager();
+  }
+}, 35000);
+
+const restartTime = 15 * 60 * 1000;
+const restartAllSystemTimer = setTimeout(() => {
+  if (!isSendingSMS && !isExecutingCommand) {
+    console.log("Restart Sys!");
+    process.exit(0);
+  }
+}, 15000);
