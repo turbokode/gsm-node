@@ -396,7 +396,7 @@ function sendSMS(phoneNumber: string, msg: string) {
     const message = removeAccents(msg);
     const endMessageIndicator = Buffer.from([26]);
 
-    let sendCommandExecuted = false;
+  let sendCommandExecuted = false;
     const onData = async (data: string) => {
       console.log("SEND: ", data);
       if (sendIDRegex.test(data)) sendCommandExecuted = true;
