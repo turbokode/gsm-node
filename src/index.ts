@@ -357,7 +357,6 @@ function addToSendQueue(phoneNumber: string, message: string) {
 
 async function sendSMSManager() {
   const toSendMessage = sendSMSQueue.getNext();
-  console.log("QUEUED MESSAGES: ", sendSMSQueue.getAll());
   console.log("toSendMessage: ", toSendMessage);
 
   if (toSendMessage && !toSendMessage.sendState && tryToSendSMSCounter < 2) {
@@ -460,4 +459,4 @@ const restartAllSystemTimer = setTimeout(() => {
     console.log("Restart Sys!");
     process.exit(0);
   }
-}, 15000);
+}, restartTime);
