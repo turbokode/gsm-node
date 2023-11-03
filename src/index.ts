@@ -25,6 +25,8 @@ app.use(cors());
 app.post("/send_sms", async (req, res) => {
   const { phoneNumber, message } = req.body;
 
+  isExecutingAPIRequest = true;
+
   console.log("SEND SMS REQUEST: ", { phoneNumber, message });
 
   try {
@@ -41,11 +43,15 @@ app.post("/send_sms", async (req, res) => {
      */
 
     res.status(500).json({ message: err });
+  } finally {
+    isExecutingAPIRequest = false;
   }
 });
 
 app.get("/check_sys", async (req, res) => {
   let status = { server: true, gsm: false };
+
+  isExecutingAPIRequest = true;
 
   try {
     await executeCommand("AT");
@@ -58,6 +64,8 @@ app.get("/check_sys", async (req, res) => {
     await notifications("BAD_REQUEST");
 
     res.status(500).json({ message: err });
+  } finally {
+    isExecutingAPIRequest = false;
   }
 });
 
@@ -66,6 +74,8 @@ app.get("/check_device", async (req, res) => {
     deviceSIMNumber: string;
     checkCode: string;
   };
+
+  isExecutingAPIRequest = true;
 
   try {
     if (isEmpty(deviceSIMNumber))
@@ -82,11 +92,9 @@ app.get("/check_device", async (req, res) => {
     await notifications("BAD_REQUEST");
 
     res.status(500).json({ message: err });
+  } finally {
+    isExecutingAPIRequest = false;
   }
-});
-
-app.get("/", (req, res) => {
-  return res.status(200).send("SMS Server");
 });
 
 app.listen(serverPort, async () => {
@@ -104,6 +112,7 @@ let newMessageQueue = new Array<string>();
 const sendSMSQueue = new MessageQueue();
 let commandExecutionsCounter = 0;
 let isExecutingCommand = false;
+let isExecutingAPIRequest = false;
 let responses: string[] = [];
 let tryToSendSMSCounter = 0;
 let commandReceived = false;
@@ -451,17 +460,12 @@ const checkUnreadMessageInterval = setInterval(async () => {
     await getUnreadMessages();
     sendSMSManager();
   }
-
-  console.log(
-    "!isSendingSMS && !isExecutingCommand: ",
-    !isSendingSMS && !isExecutingCommand
-  );
 }, 35000);
 
-const restartTime = 60 * 1000;
+const restartTime = 2 * 60 * 1000;
 const restartAllSystemTimer = setInterval(() => {
   console.log("Restart timer!");
-  if (!isSendingSMS && !isExecutingCommand) {
+  if (!isSendingSMS && !isExecutingCommand && !isExecutingAPIRequest) {
     console.log("Restart Sys!");
     process.exit(0);
   }
