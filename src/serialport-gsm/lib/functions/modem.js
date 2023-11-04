@@ -1986,6 +1986,7 @@ module.exports = function (SerialPort) {
       sender: message.getAddress().getPhone() || null,
       message: message.getData().getText() || null,
       index: messageIndex,
+      msgID: uuidv4(),
       msgStatus: messageStatus,
       dateTimeSent:
         message.getScts && message.getScts()
