@@ -1297,7 +1297,7 @@ module.exports = function (SerialPort) {
   modem.dataReceived = (buffer) => {
     const received = buffer.toString();
     data += received;
-    // console.log(received)
+    console.log(received);
     let parts = data.split("\r\n");
     data = parts.pop();
     parts.forEach((part) => {
