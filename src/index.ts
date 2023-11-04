@@ -134,11 +134,10 @@ gsmModem.on("open", () => {
 
 setInterval(async () => {
   console.log("Timer");
-  if (!gsmModem.isOpen) {
+  if (!gsmModem.isOpened) {
     gsmModem.open(configGSM.serialCOM, configGSM.options);
   } else {
-    await resetGSM();
-    gsmModem.close(() => process.exit(0));
+    gsmModem.close();
   }
 }, 5000);
 
