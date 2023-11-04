@@ -125,7 +125,7 @@ setInterval(() => {
       }
     }
   );
-}, 1000);
+}, 5000);
 
 async function postRequest(smsData: SMS_ResponseType) {
   try {
