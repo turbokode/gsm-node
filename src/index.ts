@@ -2,7 +2,7 @@ import { AxiosError } from "axios";
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import { SMS_ResponseType } from "./@types/app";
+import { GSM_Response, SMS_ResponseType } from "./@types/app";
 import { api } from "./api/server";
 import { configGSM } from "./resources/configParams";
 import { SerialPortGSM } from "./serialport-gsm/lib";
@@ -70,6 +70,26 @@ gsmModem.on("open", () => {
               console.log(`Error retrieving Signal Strength - ${err}`);
             } else {
               console.log(`Signal Strength: ${JSON.stringify(result)}`);
+
+              // read the whole SIM card inbox
+              gsmModem.getSimInbox(
+                (result: GSM_Response<SMS_ResponseType>, err: object) => {
+                  if (err) {
+                    console.log(`Failed to get SimInbox ${err}`);
+                  } else {
+                    console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
+                    const executedMsg: string[] = [];
+                    if (result && result.data.length > 0)
+                      result.data.forEach(async (smsData) => {
+                        if (!executedMsg.find((d) => d === smsData.msgID)) {
+                          await postRequest(smsData);
+                          executedMsg.push(smsData.msgID);
+                          gsmModem.deleteMessage(smsData);
+                        }
+                      });
+                  }
+                }
+              );
             }
           });
         }
@@ -86,14 +106,18 @@ gsmModem.on("open", () => {
     }
   });
 
-  gsmModem.on("onNewMessageIndicator", (data: object) => {
-    //indicator for new message only (sender, timeSent)
-    console.log(`Event New Message Indication: ` + JSON.stringify(data));
-  });
+  // gsmModem.on("onNewMessageIndicator", (data: object) => {
+  //   //indicator for new message only (sender, timeSent)
+  //   console.log(`Event New Message Indication: ` + JSON.stringify(data));
+  // });
 
-  gsmModem.on("onNewMessage", (data: object) => {
+  gsmModem.on("onNewMessage", (data: SMS_ResponseType[]) => {
     //whole message data
     console.log(`Event New Message: ` + JSON.stringify(data));
+
+    data.forEach(async (smsData) => {
+      await postRequest(smsData);
+    });
   });
 
   gsmModem.on("onSendingMessage", (data: object) => {
@@ -113,28 +137,6 @@ gsmModem.on("open", () => {
 });
 
 gsmModem.open(configGSM.serialCOM, configGSM.options);
-
-setInterval(() => {
-  // read the whole SIM card inbox
-  // gsmModem.getSimInbox(
-  //   (result: GSM_Response<SMS_ResponseType>, err: object) => {
-  //     if (err) {
-  //       console.log(`Failed to get SimInbox ${err}`);
-  //     } else {
-  //       console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
-  //       const executedMsg: string[] = [];
-  //       if (result && result.data.length > 0)
-  //         result.data.forEach(async (smsData) => {
-  //           if (!executedMsg.find((d) => d === smsData.msgID)) {
-  //             await postRequest(smsData);
-  //             executedMsg.push(smsData.msgID);
-  //             gsmModem.deleteMessage(smsData);
-  //           }
-  //         });
-  //     }
-  //   }
-  // );
-}, 5000);
 
 async function postRequest(smsData: SMS_ResponseType) {
   try {
