@@ -5,6 +5,7 @@ import express from "express";
 import { GSM_Response, SMS_ResponseType } from "./@types/app";
 import { api } from "./api/server";
 import { configGSM } from "./resources/configParams";
+import { resetGSM } from "./resources/resetGSM";
 import { SerialPortGSM } from "./serialport-gsm/lib";
 
 const receivedSMS = new Map<string, SMS_ResponseType>();
@@ -106,11 +107,6 @@ gsmModem.on("open", () => {
     }
   });
 
-  // gsmModem.on("onNewMessageIndicator", (data: object) => {
-  //   //indicator for new message only (sender, timeSent)
-  //   console.log(`Event New Message Indication: ` + JSON.stringify(data));
-  // });
-
   gsmModem.on("onNewMessage", (data: SMS_ResponseType[]) => {
     //whole message data
     console.log(`Event New Message: ` + JSON.stringify(data));
@@ -136,7 +132,13 @@ gsmModem.on("open", () => {
   });
 });
 
-gsmModem.open(configGSM.serialCOM, configGSM.options);
+setInterval(async () => {
+  if (!gsmModem.isOpen) gsmModem.open(configGSM.serialCOM, configGSM.options);
+  if (gsmModem.isOpen) {
+    await resetGSM();
+    gsmModem.close(process.exit(0));
+  }
+}, 5000);
 
 async function postRequest(smsData: SMS_ResponseType) {
   try {
