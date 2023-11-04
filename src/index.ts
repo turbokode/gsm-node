@@ -45,20 +45,21 @@ gsmModem.on("open", () => {
         if (err) {
           console.log(`Failed to get SimMemory ${err}`);
         } else {
+          gsmModem.deleteAllSimMessages();
           console.log(`Sim Memory Result: ${JSON.stringify(result)}`);
-
-          // read the whole SIM card inbox
-          gsmModem.getSimInbox((result: object, err: object) => {
-            if (err) {
-              console.log(`Failed to get SimInbox ${err}`);
-            } else {
-              console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
-            }
-          });
         }
       });
     }
   });
+
+  // // read the whole SIM card inbox
+  // gsmModem.getSimInbox((result: object, err: object) => {
+  //   if (err) {
+  //     console.log(`Failed to get SimInbox ${err}`);
+  //   } else {
+  //     console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
+  //   }
+  // });
 
   // // Finally send an SMS
   // const message = `Hello ${phone.name}, Try again....This message was sent`;

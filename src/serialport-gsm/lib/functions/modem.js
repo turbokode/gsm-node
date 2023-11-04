@@ -542,7 +542,7 @@ module.exports = function (SerialPort) {
     if (priority == null) priority = false;
     // is the modem Ready?
     const item = modem.executeCommand(
-      "AT",
+      "ATZ",
       (resultInit, error) => {
         callback(resultInit, error);
       },
