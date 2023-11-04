@@ -37,76 +37,6 @@ gsmModem.on("open", () => {
               console.log(`Signal Strength: ${JSON.stringify(result)}`);
             }
           });
-
-          // get Modem Serial Number
-          gsmModem.getModemSerial((result: object, err: object) => {
-            if (err) {
-              console.log(`Error retrieving ModemSerial - ${err}`);
-            } else {
-              console.log(`Modem Serial: ${JSON.stringify(result)}`);
-            }
-          });
-
-          // get the Own Number of the Modem
-          gsmModem.getOwnNumber((result: object, err: object) => {
-            if (err) {
-              console.log(`Error retrieving own Number - ${err}`);
-            } else {
-              console.log(`Own number: ${JSON.stringify(result)}`);
-            }
-          });
-
-          // execute a custom command - one line response normally is handled automatically
-          gsmModem.executeCommand(
-            "AT^GETPORTMODE",
-            (result: object, err: object) => {
-              if (err) {
-                console.log(`Error - ${err}`);
-              } else {
-                console.log(`Result ${JSON.stringify(result)}`);
-              }
-            }
-          );
-
-          // execute a complex custom command - multi line responses needs own parsing logic
-          const commandParser = gsmModem.executeCommand(
-            "AT^SETPORT=?",
-            (result: object, err: object) => {
-              if (err) {
-                console.log(`Error - ${err}`);
-              } else {
-                console.log(`Result ${JSON.stringify(result)}`);
-              }
-            }
-          );
-          const portList: any = {};
-          commandParser.logic = (dataLine: any) => {
-            if (dataLine.startsWith("^SETPORT:")) {
-              const arr = dataLine.split(":");
-              portList[arr[1]] = arr[2].trim();
-            } else if (dataLine.includes("OK")) {
-              return {
-                resultData: {
-                  status: "success",
-                  request: "executeCommand",
-                  data: { result: portList },
-                },
-                returnResult: true,
-              };
-            } else if (
-              dataLine.includes("ERROR") ||
-              dataLine.includes("COMMAND NOT SUPPORT")
-            ) {
-              return {
-                resultData: {
-                  status: "ERROR",
-                  request: "executeCommand",
-                  data: `Execute Command returned Error: ${dataLine}`,
-                },
-                returnResult: true,
-              };
-            }
-          };
         }
       }, phone.mode);
 
@@ -124,27 +54,22 @@ gsmModem.on("open", () => {
             } else {
               console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
             }
-
-            // Finally send an SMS
-            const message = `Hello ${phone.name}, Try again....This message was sent`;
-            gsmModem.sendSMS(phone.number, message, false, (result: any) => {
-              console.log(
-                `Callback Send: Message ID: ${result.data.messageId},` +
-                  `${result.data.response} To: ${
-                    result.data.recipient
-                  } ${JSON.stringify(result)}`
-              );
-            });
           });
         }
       });
     }
   });
 
-  gsmModem.on("onNewMessageIndicator", (data: object) => {
-    //indicator for new message only (sender, timeSent)
-    console.log(`Event New Message Indication: ` + JSON.stringify(data));
-  });
+  // // Finally send an SMS
+  // const message = `Hello ${phone.name}, Try again....This message was sent`;
+  // gsmModem.sendSMS(phone.number, message, false, (result: any) => {
+  //   console.log(
+  //     `Callback Send: Message ID: ${result.data.messageId},` +
+  //       `${result.data.response} To: ${result.data.recipient} ${JSON.stringify(
+  //         result
+  //       )}`
+  //   );
+  // });
 
   gsmModem.on("onNewMessage", (data: object) => {
     //whole message data
@@ -154,11 +79,6 @@ gsmModem.on("open", () => {
   gsmModem.on("onSendingMessage", (data: object) => {
     //whole message data
     console.log(`Event Sending Message: ` + JSON.stringify(data));
-  });
-
-  gsmModem.on("onNewIncomingCall", (data: object) => {
-    //whole message data
-    console.log(`Event Incoming Call: ` + JSON.stringify(data));
   });
 
   gsmModem.on("onMemoryFull", (data: object) => {
