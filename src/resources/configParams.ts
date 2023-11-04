@@ -16,4 +16,5 @@ export const configGSM = {
     customInitCommand: "",
   },
   serialCOM: "/dev/serial0",
+  mode: "PDU",
 };

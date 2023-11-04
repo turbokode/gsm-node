@@ -1,14 +1,50 @@
+import { AxiosError } from "axios";
+import cors from "cors";
+import "dotenv/config";
+import express from "express";
+import { GSM_Response, SMS_ResponseType } from "./@types/app";
+import { api } from "./api/server";
 import { configGSM } from "./resources/configParams";
 import { SerialPortGSM } from "./serialport-gsm/lib";
 
-var gsmModem = SerialPortGSM.Modem();
+const receivedSMS = new Map<string, SMS_ResponseType>();
 
-let phone = {
-  name: "Dario Pacule",
-  number: "+258844825696",
-  numberSelf: "+258844825696",
-  mode: "PDU",
-};
+const app = express();
+
+const serverPort = process.env.PORT;
+
+app.use(express.json());
+app.use(cors());
+
+app.post("/send_sms", async (req, res) => {
+  const { phoneNumber, message } = req.body as {
+    phoneNumber: string;
+    message: string;
+  };
+
+  console.log("SEND SMS REQUEST: ", { phoneNumber, message });
+
+  try {
+    const toSendPhoneNumber = phoneNumber.startsWith("+258")
+      ? phoneNumber
+      : phoneNumber.startsWith("258")
+      ? "+" + phoneNumber
+      : "+258" + phoneNumber;
+
+    gsmModem.sendSMS(toSendPhoneNumber, message, false);
+
+    res.json({ message: "success" });
+  } catch (err) {
+    console.log("Error when try to send SMS: ", err);
+    res.status(500).json({ message: err });
+  }
+});
+
+app.listen(serverPort, async () => {
+  console.log(`🚀 The SMS server is running in ${serverPort} port!`);
+});
+
+var gsmModem = SerialPortGSM.Modem();
 
 // Port is opened
 gsmModem.on("open", () => {
@@ -21,7 +57,6 @@ gsmModem.on("open", () => {
     } else {
       console.log(`InitModemResponse: ${JSON.stringify(msg)}`);
 
-      console.log(`Configuring Modem for Mode: ${phone.mode}`);
       // set mode to PDU mode to handle SMS
       gsmModem.setModemMode((msg: object, err: object) => {
         if (err) {
@@ -38,43 +73,17 @@ gsmModem.on("open", () => {
             }
           });
         }
-      }, phone.mode);
+      }, configGSM.mode);
 
       // get info about stored Messages on SIM card
       gsmModem.checkSimMemory((result: object, err: object) => {
         if (err) {
           console.log(`Failed to get SimMemory ${err}`);
         } else {
-          gsmModem.deleteAllSimMessages();
           console.log(`Sim Memory Result: ${JSON.stringify(result)}`);
         }
       });
     }
-  });
-
-  // // read the whole SIM card inbox
-  // gsmModem.getSimInbox((result: object, err: object) => {
-  //   if (err) {
-  //     console.log(`Failed to get SimInbox ${err}`);
-  //   } else {
-  //     console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
-  //   }
-  // });
-
-  // // Finally send an SMS
-  // const message = `Hello ${phone.name}, Try again....This message was sent`;
-  // gsmModem.sendSMS(phone.number, message, false, (result: any) => {
-  //   console.log(
-  //     `Callback Send: Message ID: ${result.data.messageId},` +
-  //       `${result.data.response} To: ${result.data.recipient} ${JSON.stringify(
-  //         result
-  //       )}`
-  //   );
-  // });
-
-  gsmModem.on("onNewMessage", (data: object) => {
-    //whole message data
-    console.log(`Event New Message: ` + JSON.stringify(data));
   });
 
   gsmModem.on("onSendingMessage", (data: object) => {
@@ -95,6 +104,39 @@ gsmModem.on("open", () => {
 
 gsmModem.open(configGSM.serialCOM, configGSM.options);
 
-setTimeout(() => {
-  gsmModem.close(() => process.exit);
-}, 90000);
+setInterval(() => {
+  // read the whole SIM card inbox
+  gsmModem.getSimInbox(
+    (result: GSM_Response<SMS_ResponseType>, err: object) => {
+      if (err) {
+        console.log(`Failed to get SimInbox ${err}`);
+      } else {
+        console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
+
+        if (result && result.data.length > 0)
+          result.data.forEach(async (smsData) => {
+            await postRequest(smsData);
+            gsmModem.deleteMessage(smsData);
+          });
+      }
+    }
+  );
+}, 1000);
+
+async function postRequest(smsData: SMS_ResponseType) {
+  try {
+    const response = await api.post("/system_gate_way", {
+      phoneNumber: "+" + smsData.sender,
+      content: smsData.message,
+    });
+
+    console.log("POST TO SERVER EXECUTED: ", response.data);
+  } catch (error) {
+    const err = error as AxiosError;
+
+    console.log("POST ERROR: ", err.message);
+    const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n\nAjuda: ${process.env.ALERT_PHONE_NUMBER}.`;
+
+    gsmModem.sendSMS(smsData.sender, message, false);
+  }
+}
