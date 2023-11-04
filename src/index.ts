@@ -113,10 +113,14 @@ setInterval(() => {
       } else {
         console.log(`Sim Inbox Result: ${JSON.stringify(result)}`);
 
+        const executedMsg: string[] = [];
         if (result && result.data.length > 0)
           result.data.forEach(async (smsData) => {
-            await postRequest(smsData);
-            gsmModem.deleteMessage(smsData);
+            if (!executedMsg.find((d) => d === smsData.msgID)) {
+              await postRequest(smsData);
+              executedMsg.push(smsData.msgID);
+              gsmModem.deleteMessage(smsData);
+            }
           });
       }
     }

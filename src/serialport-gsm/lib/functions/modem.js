@@ -1,6 +1,7 @@
 "use strict";
 
 const pdu = require("node-pdu");
+const { v4: uuidv4 } = require("uuid");
 
 let EventEmitter = require("events").EventEmitter;
 
@@ -1715,11 +1716,13 @@ module.exports = function (SerialPort) {
           resultData.data.push({
             index: parseInt(newpart.split(",")[0].replace("+CMGL: ", ""), 10),
             msgStatus: parseInt(newpart.split(",")[1], 10),
+            msgID: uuidv4(),
           });
         } else {
           resultData.data.push({
             index: newpart.split(",")[0].replace("+CMGL: ", "").toString(),
             msgStatus: newpart.split(",")[1].replace(/"/g, ""),
+            msgID: uuidv4(),
             sender: newpart.split(",")[2].replace(/"/g, ""),
             dateTimeSent:
               newpart.split(",")[4].replace(/"/g, "") +
