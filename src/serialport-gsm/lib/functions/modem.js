@@ -1295,6 +1295,7 @@ module.exports = function (SerialPort) {
   };
 
   modem.dataReceived = (buffer) => {
+    console.log("ON DATA: ", buffer);
     const received = buffer.toString();
     data += received;
     console.log(received);
