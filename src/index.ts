@@ -133,7 +133,6 @@ async function onExecuteCommand(data: string) {
   if (commandReceived) responses.push(data);
 
   if (commandReceived && data === "OK") {
-    console.log(`${executingCommand}: SUCCESS EXECUTED!`);
     isExecutingCommand = false;
     commandReceived = false;
     executingCommand = "";
