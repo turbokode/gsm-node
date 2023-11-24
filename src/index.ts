@@ -129,7 +129,7 @@ setInterval(async () => {
   } else {
     gsmModem.close();
   }
-}, 10000);
+}, 100000);
 
 async function postRequest(smsData: SMS_ResponseType) {
   try {
