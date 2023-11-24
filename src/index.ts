@@ -5,7 +5,6 @@ import express from "express";
 import { GSM_Response, SMS_ResponseType } from "./@types/app";
 import { api } from "./api/server";
 import { configGSM } from "./resources/configParams";
-import { resetGSM } from "./resources/resetGSM";
 import { SerialPortGSM } from "./serialport-gsm/lib";
 
 const receivedSMS = new Map<string, SMS_ResponseType>();
@@ -95,15 +94,6 @@ gsmModem.on("open", () => {
           });
         }
       }, configGSM.mode);
-
-      // get info about stored Messages on SIM card
-      gsmModem.checkSimMemory((result: object, err: object) => {
-        if (err) {
-          console.log(`Failed to get SimMemory ${err}`);
-        } else {
-          console.log(`Sim Memory Result: ${JSON.stringify(result)}`);
-        }
-      });
     }
   });
 
@@ -139,7 +129,7 @@ setInterval(async () => {
   } else {
     gsmModem.close();
   }
-}, 5000);
+}, 10000);
 
 async function postRequest(smsData: SMS_ResponseType) {
   try {
