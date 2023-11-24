@@ -452,7 +452,7 @@ async function handleData(data: string) {
 
 const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
-    await executeCommand("ATZ").then((res) => console.log(res));
+    await executeCommand("AT").then((res) => console.log(res));
     await getUnreadMessages();
     sendSMSManager();
   }
