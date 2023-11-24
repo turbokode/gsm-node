@@ -259,22 +259,16 @@ async function getUnreadMessages() {
 }
 
 function newSMS(gsmMessage: string) {
-  console.log("NEW SMS: ", gsmMessage);
+  console.log("NEW USER SMS");
   restartAllSystemTimer.refresh();
-
   tryToSendSMSCounter = 0;
 
-  if (newMessageQueue.length > 0) newMessageQueue.push(gsmMessage);
+  newMessageQueue.push(gsmMessage);
 
-  if (newMessageQueue.length === 0) {
-    newMessageQueue.push(gsmMessage);
-    processNextMessage();
-  }
+  if (newMessageQueue.length === 1) processNextMessage();
 }
 
 async function processNextMessage() {
-  console.log("newMessageQueue.length", newMessageQueue.length);
-
   if (newMessageQueue.length === 0 || isSendingSMS) {
     return;
   }
@@ -309,29 +303,28 @@ async function processNextMessage() {
         });
 
         console.log("POST TO SERVER EXECUTED: ", response.data);
+        addToSendQueue(newUserMessage.phoneNumber, "Aguarde ...");
       } catch (error) {
         const err = error as AxiosError;
 
         console.log("POST ERROR: ", err.message);
-        const message = `Desculpa um error inesperado foi verificado no sistema, por favor volte a tentar mais tarde.\n Caso o problema persista entre em contacto através do numero: ${process.env.ALERT_PHONE_NUMBER}.\n\nEstamos a trabalhar arduamente para resolver o problema.`;
+        const message = `Erro no sistema, tente novamente.\n\nSe persistir, contate-nos: ${process.env.ALERT_PHONE_NUMBER}.\nEstamos trabalhando para resolver.`;
 
         addToSendQueue(newUserMessage.phoneNumber, message);
       }
     }
   }
-
-  await getUnreadMessages();
 }
 
 async function getNewUserMessage(line: string) {
   const index = line.split(",")[1].trim();
 
   try {
-    await executeCommand(`AT+CMGR=${index}`);
+    await executeCommand(`AT+CMGR=${index}`); //GET SMS
 
     const userMessage = processUserMessage(responses);
 
-    await executeCommand(`AT+CMGD=${index}`);
+    await executeCommand(`AT+CMGD=${index}`); //Delete SMS
 
     return userMessage;
   } catch (error) {
@@ -354,7 +347,6 @@ function addToSendQueue(phoneNumber: string, message: string) {
 
 async function sendSMSManager() {
   const toSendMessage = sendSMSQueue.getNext();
-  console.log("toSendMessage: ", toSendMessage);
 
   if (toSendMessage && !toSendMessage.sendState && tryToSendSMSCounter < 2) {
     if (lastSentMessage === toSendMessage) tryToSendSMSCounter++;
@@ -388,9 +380,21 @@ function sendSMS(phoneNumber: string, msg: string) {
     const endMessageIndicator = Buffer.from([26]);
 
     let sendCommandExecuted = false;
+    let isReadyToReciveSMS = false;
     const onData = async (data: string) => {
       console.log("SEND: ", data);
+
       if (sendIDRegex.test(data)) sendCommandExecuted = true;
+      if (data === ">") isReadyToReciveSMS = true;
+
+      if (isReadyToReciveSMS) {
+        port.write(`${message + endMessageIndicator}\r\n`, (error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+        });
+      }
 
       if (sendCommandExecuted && data === "OK") {
         parser.removeListener("data", onData);
@@ -413,39 +417,41 @@ function sendSMS(phoneNumber: string, msg: string) {
 
     parser.on("data", onData);
 
-    setTimeout(function () {
+    setTimeout(() => {
       port.write(`AT+CMGS= "+258${phoneNumber}"\r\n`);
-
-      setTimeout(() => {
-        port.write(`${message}`);
-      }, 1000);
-
-      setTimeout(() => {
-        port.write(`${endMessageIndicator}\r\n`, (error) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-        });
-      }, 1000);
     }, 1000);
   });
 }
 
 async function gsmConfig() {
   try {
-    await executeCommand("AT").then((res) => console.log(res));
+    await executeCommand("ATZ").then((res) => console.log(res));
     await executeCommand("AT+CMGF=1").then((res) => console.log(res));
     await executeCommand(`AT+CMGDA="DEL READ"`).then((res) => console.log(res));
-    await executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
   } catch (error) {
     await notifications("GSM_OFF");
   }
 }
 
+async function initializeGSM() {
+  await resetGSM(port, parser, gsmConfig);
+  await gsmConfig();
+  await getUnreadMessages();
+}
+
+async function handleData(data: string) {
+  console.log("GSM MESSAGE: ", data);
+  if (data.startsWith("+CMTI:")) newSMS(data);
+  else if (isExecutingCommand) onExecuteCommand(data);
+}
+
+/**
+ * TIMERS
+ */
+
 const checkUnreadMessageInterval = setInterval(async () => {
   if (!isSendingSMS && !isExecutingCommand) {
-    await executeCommand("AT").then((res) => console.log(res));
+    await executeCommand("ATZ").then((res) => console.log(res));
     await getUnreadMessages();
     sendSMSManager();
   }
@@ -459,15 +465,3 @@ const restartAllSystemTimer = setInterval(() => {
     process.exit(0);
   }
 }, restartTime);
-
-async function initializeGSM() {
-  await resetGSM(port, parser, gsmConfig);
-  await gsmConfig();
-  await getUnreadMessages();
-}
-
-async function handleData(data: string) {
-  console.log("GSM MESSAGE: ", data);
-  if (isExecutingCommand) onExecuteCommand(data);
-  if (data.startsWith("+CMTI:")) newSMS(data);
-}
