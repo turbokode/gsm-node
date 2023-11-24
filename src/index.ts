@@ -428,6 +428,7 @@ async function gsmConfig() {
     await executeCommand("ATZ").then((res) => console.log(res));
     await executeCommand("AT+CMGF=1").then((res) => console.log(res));
     await executeCommand(`AT+CMGDA="DEL READ"`).then((res) => console.log(res));
+    await executeCommand(`AT+CSCS="8859-1"`).then((res) => console.log(res));
   } catch (error) {
     await notifications("GSM_OFF");
   }
