@@ -30,13 +30,11 @@ export function resetGSM(
           throw new Error("Time to try connect to GSM expired!");
         }
 
-        port.write("AT\r\n");
+        port.write("ATZ\r\n");
         tryCounter++;
       }, 10000);
 
       const onData = async (data: string) => {
-        console.log("RESET EVENT LISTENER DATA: ", [data]);
-
         if (data.replace("\r", "") === "OK") {
           clearInterval(interval);
           parser.removeListener("data", onData);

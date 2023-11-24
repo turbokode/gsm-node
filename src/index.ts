@@ -440,7 +440,7 @@ async function initializeGSM() {
 }
 
 async function handleData(data: string) {
-  console.log("GSM MESSAGE: ", data);
+  if (!data.startsWith("AT")) console.log("GSM MESSAGE: ", data);
   if (data.startsWith("+CMTI:")) newSMS(data);
   else if (isExecutingCommand) onExecuteCommand(data);
 }
