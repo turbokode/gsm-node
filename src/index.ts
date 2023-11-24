@@ -119,29 +119,15 @@ let commandReceived = false;
 let executingCommand = "";
 let isSendingSMS = false;
 
-port.on("open", async () => {
-  console.log("Serial port is open!");
+port.on("open", initializeGSM);
 
-  await resetGSM(port, parser, gsmConfig);
-
-  await gsmConfig();
-
-  await getUnreadMessages();
-});
+parser.on("data", handleData);
 
 port.on("error", (err) => {
   if (err) console.log("Error on serial port: ", err.message);
 });
 
-parser.on("data", (data) => {
-  console.log("GSM MESSAGE: ", data);
-  if (isExecutingCommand) onExecuteCommand(data);
-  if (data.startsWith("+CMTI:")) newSMS(data);
-});
-
 async function onExecuteCommand(data: string) {
-  // console.log("EXECUTE LISTENER: ", data);
-
   if (data.replace("\r", "") === executingCommand) commandReceived = true;
 
   if (commandReceived) responses.push(data);
@@ -473,3 +459,15 @@ const restartAllSystemTimer = setInterval(() => {
     process.exit(0);
   }
 }, restartTime);
+
+async function initializeGSM() {
+  await resetGSM(port, parser, gsmConfig);
+  await gsmConfig();
+  await getUnreadMessages();
+}
+
+async function handleData(data: string) {
+  console.log("GSM MESSAGE: ", data);
+  if (isExecutingCommand) onExecuteCommand(data);
+  if (data.startsWith("+CMTI:")) newSMS(data);
+}
