@@ -46,6 +46,8 @@ app.listen(serverPort, async () => {
 
 var gsmModem = SerialPortGSM.Modem();
 
+gsmModem.open(configGSM.serialCOM, configGSM.options);
+
 // Port is opened
 gsmModem.on("open", () => {
   console.log(`Modem Sucessfully Opened`);
