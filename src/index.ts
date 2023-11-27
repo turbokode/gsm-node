@@ -264,9 +264,22 @@ function newSMS(gsmMessage: string) {
   restartAllSystemTimer.refresh();
   tryToSendSMSCounter = 0;
 
-  newSMSQueue.push({ indicator: gsmMessage, isExecuted: false });
+  // Verificar se a mensagem já está na fila e não foi executada
+  const existingMessageIndex = newSMSQueue.findIndex(
+    (message) => message.indicator === gsmMessage && !message.isExecuted
+  );
 
-  if (newSMSQueue.length === 1) processNextMessage();
+  // Se a mensagem não estiver na fila, adicione-a
+  if (existingMessageIndex === -1) {
+    newSMSQueue.push({ indicator: gsmMessage, isExecuted: false });
+
+    // Se a fila tinha apenas esta mensagem, processe-a imediatamente
+    if (newSMSQueue.length === 1) {
+      processNextMessage();
+    }
+  } else {
+    console.log("Duplicate SMS not added to the queue.");
+  }
 }
 
 let processNewSMSIndex = -1;
@@ -400,16 +413,7 @@ async function sendSMS(phoneNumber: string, msg: string) {
     const onData = async (data: string) => {
       console.log("SEND: ", data);
 
-      if (sendIDRegex.test(data)) {
-        sendCommandExecuted = true;
-        // port.write(`${message}`);
-
-        // setTimeout(() => {
-        //   port.write(`${endMessageIndicator}\r\n`);
-        // }, 1000);
-      }
-
-      // if (data.startsWith(">")) port.write(`${endMessageIndicator}\r\n`);
+      if (sendIDRegex.test(data)) sendCommandExecuted = true;
 
       if (sendCommandExecuted && data === "OK") {
         parser.removeListener("data", onData);
