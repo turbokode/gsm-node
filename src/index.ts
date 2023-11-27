@@ -4,7 +4,7 @@ import { isAfter } from "date-fns";
 import "dotenv/config";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
-import { MessageType, NotificationType } from "./@types/app";
+import { INewSMSQueue, MessageType, NotificationType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import expirationDate from "./resources/expirationDate";
@@ -108,7 +108,7 @@ const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 /* ============== USER COMMUNICATION SYSTEM ============== */
 let lastSentMessage: MessageType | undefined = undefined;
 let notificationRegister: NotificationType[] | undefined;
-let newMessageQueue = new Array<string>();
+let newSMSQueue = new Array<INewSMSQueue>();
 const sendSMSQueue = new MessageQueue();
 let commandExecutionsCounter = 0;
 let isExecutingCommand = false;
@@ -248,9 +248,12 @@ async function getUnreadMessages() {
 
   const queues = returnedUnreadMessages.map((message: string) => {
     const splitted = message.split(",");
-    return splitted[0].replace("+CMGL: ", '+CMTI: "SM",');
+    return {
+      indicator: splitted[0].replace("+CMGL: ", '+CMTI: "SM",'),
+      isExecuted: false,
+    };
   });
-  newMessageQueue.push(...queues);
+  newSMSQueue.push(...queues);
 
   processNextMessage();
 
@@ -262,26 +265,38 @@ function newSMS(gsmMessage: string) {
   restartAllSystemTimer.refresh();
   tryToSendSMSCounter = 0;
 
-  newMessageQueue.push(gsmMessage);
+  newSMSQueue.push({ indicator: gsmMessage, isExecuted: false });
 
-  if (newMessageQueue.length === 1) processNextMessage();
+  if (newSMSQueue.length === 1) processNextMessage();
 }
 
+let processNewSMSIndex = -1;
 async function processNextMessage() {
-  if (newMessageQueue.length === 0 || isSendingSMS) {
+  console.log("Nex SMS index: ", processNewSMSIndex);
+  console.log("newSMSQueue: ", newSMSQueue);
+
+  if (newSMSQueue.length === 0 || isSendingSMS) {
     return;
   }
 
-  const message = newMessageQueue.shift();
+  processNewSMSIndex++;
+  const message = newSMSQueue[processNewSMSIndex];
 
   if (!message) {
+    processNewSMSIndex = -1;
     console.error("NOT MESSAGE FOUND ON QUEUE");
     return;
   }
 
-  const newUserMessage = await getNewUserMessage(message);
+  if (message.isExecuted) {
+    processNextMessage();
+    return;
+  }
+
+  const newUserMessage = await getNewUserMessage(message.indicator);
 
   if (newUserMessage && !isStringEmpty(newUserMessage.phoneNumber)) {
+    newSMSQueue[processNewSMSIndex].isExecuted = true;
     console.log("USER MESSAGE: ", newUserMessage);
 
     const passedTime = expirationDate({

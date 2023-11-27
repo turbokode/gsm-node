@@ -40,3 +40,8 @@ export interface SMSHeader {
   smscType: string;
   smscPlan: string;
 }
+
+export interface INewSMSQueue {
+  indicator: string;
+  isExecuted: Boolean;
+}
