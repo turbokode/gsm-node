@@ -402,11 +402,11 @@ async function sendSMS(phoneNumber: string, msg: string) {
 
       if (sendIDRegex.test(data)) {
         sendCommandExecuted = true;
-        port.write(`${message}`);
+        // port.write(`${message}`);
 
-        setTimeout(() => {
-          port.write(`${endMessageIndicator}\r\n`);
-        }, 1000);
+        // setTimeout(() => {
+        //   port.write(`${endMessageIndicator}\r\n`);
+        // }, 1000);
       }
 
       // if (data.startsWith(">")) port.write(`${endMessageIndicator}\r\n`);
@@ -432,8 +432,21 @@ async function sendSMS(phoneNumber: string, msg: string) {
 
     parser.on("data", onData);
 
-    setTimeout(() => {
+    setTimeout(function () {
       port.write(`AT+CMGS= "+258${phoneNumber}"\r\n`);
+
+      setTimeout(() => {
+        port.write(`${message}`);
+      }, 1000);
+
+      setTimeout(() => {
+        port.write(`${endMessageIndicator}\r\n`, (error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+        });
+      }, 1000);
     }, 1000);
   });
 }
