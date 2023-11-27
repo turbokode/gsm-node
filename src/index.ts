@@ -385,9 +385,11 @@ async function sendSMSManager() {
   }
 }
 
-function sendSMS(phoneNumber: string, msg: string) {
+async function sendSMS(phoneNumber: string, msg: string) {
   isSendingSMS = true;
   checkUnreadMessageInterval.refresh();
+
+  await executeCommand('AT+CSCS="GSM"');
 
   return new Promise((resolve, reject) => {
     const sendIDRegex = /\+CMGS: (\d+)/;
@@ -395,13 +397,12 @@ function sendSMS(phoneNumber: string, msg: string) {
     const endMessageIndicator = Buffer.from([26]);
 
     let sendCommandExecuted = false;
-    let isReadyToSend = false;
     const onData = async (data: string) => {
       console.log("SEND: ", data);
 
-      if (sendIDRegex.test(data)) {
-        sendCommandExecuted = true;
+      if (sendIDRegex.test(data)) sendCommandExecuted = true;
 
+      if (data.startsWith(">")) {
         port.write(`${message + endMessageIndicator}\r\n`, (error) => {
           if (error) {
             reject(error);
