@@ -402,18 +402,7 @@ function sendSMS(phoneNumber: string, msg: string) {
       if (sendIDRegex.test(data)) {
         sendCommandExecuted = true;
 
-        port.write(message, (error) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-        });
-      }
-
-      if (data.startsWith(">")) isReadyToSend = true;
-
-      if (isReadyToSend) {
-        port.write(`${endMessageIndicator}\r\n`, (error) => {
+        port.write(`${message + endMessageIndicator}\r\n`, (error) => {
           if (error) {
             reject(error);
             return;
