@@ -292,10 +292,14 @@ async function processNextMessage() {
     return;
   }
 
-  const newUserMessage = await getNewUserMessage(message.indicator);
+  const res = await getNewUserMessage(message.indicator);
+  const newUserMessage = res?.userMessage;
+  const index = res?.index;
 
   if (newUserMessage && !isStringEmpty(newUserMessage.phoneNumber)) {
     newSMSQueue[processNewSMSIndex].isExecuted = true;
+    await executeCommand(`AT+CMGD=${index}`); //Delete SMS
+
     console.log("USER MESSAGE: ", newUserMessage);
 
     const passedTime = expirationDate({
@@ -337,9 +341,7 @@ async function getNewUserMessage(line: string) {
 
     const userMessage = processUserMessage(responses);
 
-    await executeCommand(`AT+CMGD=${index}`); //Delete SMS
-
-    return userMessage;
+    return { userMessage, index };
   } catch (error) {
     console.log(error);
   }
