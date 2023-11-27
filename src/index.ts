@@ -4,7 +4,7 @@ import { isAfter } from "date-fns";
 import "dotenv/config";
 import express from "express";
 import { ReadlineParser, SerialPort } from "serialport";
-import { INewSMSQueue, MessageType, NotificationType } from "./@types/app";
+import { INewSMSQueue, MessageType } from "./@types/app";
 import { api } from "./api/server";
 import { MessageQueue } from "./resources/MessageQueue";
 import expirationDate from "./resources/expirationDate";
@@ -107,7 +107,6 @@ const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
 /* ============== USER COMMUNICATION SYSTEM ============== */
 let lastSentMessage: MessageType | undefined = undefined;
-let notificationRegister: NotificationType[] | undefined;
 let newSMSQueue = new Array<INewSMSQueue>();
 const sendSMSQueue = new MessageQueue();
 let commandExecutionsCounter = 0;
