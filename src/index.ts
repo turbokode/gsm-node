@@ -400,9 +400,9 @@ async function sendSMS(phoneNumber: string, msg: string) {
     const onData = async (data: string) => {
       console.log("SEND: ", data);
 
-      if (sendIDRegex.test(data)) sendCommandExecuted = true;
+      if (sendIDRegex.test(data)) {
+        sendCommandExecuted = true;
 
-      if (data.startsWith(">")) {
         port.write(`${message + endMessageIndicator}\r\n`, (error) => {
           if (error) {
             reject(error);
