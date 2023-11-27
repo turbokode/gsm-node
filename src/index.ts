@@ -402,10 +402,14 @@ async function sendSMS(phoneNumber: string, msg: string) {
 
       if (sendIDRegex.test(data)) {
         sendCommandExecuted = true;
-        port.write(`${message}"\r\n`);
+        port.write(`${message}`);
+
+        setTimeout(() => {
+          port.write(`${endMessageIndicator}\r\n`);
+        }, 1000);
       }
 
-      if (data.startsWith(">")) port.write(`${endMessageIndicator}\r\n`);
+      // if (data.startsWith(">")) port.write(`${endMessageIndicator}\r\n`);
 
       if (sendCommandExecuted && data === "OK") {
         parser.removeListener("data", onData);
