@@ -186,7 +186,7 @@ function executeCommand(command: string) {
         commandExecutionsCounter = 0;
         reject("The GSM module is not responding!");
       }
-    }, 15000);
+    }, 60000);
 
     port.write(`${command}\r\n`, async (err) => {
       if (err) {
