@@ -395,15 +395,25 @@ function sendSMS(phoneNumber: string, msg: string) {
     const endMessageIndicator = Buffer.from([26]);
 
     let sendCommandExecuted = false;
-    let isReadyToReciveSMS = false;
+    let isReadyToSend = false;
     const onData = async (data: string) => {
       console.log("SEND: ", data);
 
-      if (sendIDRegex.test(data)) sendCommandExecuted = true;
-      if (data === ">") isReadyToReciveSMS = true;
+      if (sendIDRegex.test(data)) {
+        sendCommandExecuted = true;
 
-      if (isReadyToReciveSMS) {
-        port.write(`${message + endMessageIndicator}\r\n`, (error) => {
+        port.write(message, (error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+        });
+      }
+
+      if (data.startsWith(">")) isReadyToSend = true;
+
+      if (isReadyToSend) {
+        port.write(`${endMessageIndicator}\r\n`, (error) => {
           if (error) {
             reject(error);
             return;
