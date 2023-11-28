@@ -333,7 +333,7 @@ async function processNextMessage() {
         });
 
         console.log("POST TO SERVER EXECUTED: ", response.data);
-        addToSendQueue(newUserMessage.phoneNumber, "Aguarde ...");
+        // addToSendQueue(newUserMessage.phoneNumber, "Aguarde ...");
       } catch (error) {
         const err = error as AxiosError;
 
