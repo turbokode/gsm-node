@@ -264,6 +264,9 @@ function newSMS(gsmMessage: string) {
   restartAllSystemTimer.refresh();
   tryToSendSMSCounter = 0;
 
+  // Remover mensagens com isExecuted verdadeiro
+  newSMSQueue = newSMSQueue.filter((message) => !message.isExecuted);
+
   // Verificar se a mensagem já está na fila e não foi executada
   const existingMessageIndex = newSMSQueue.findIndex(
     (message) => message.indicator === gsmMessage && !message.isExecuted
@@ -285,7 +288,7 @@ function newSMS(gsmMessage: string) {
 let processNewSMSIndex = -1;
 async function processNextMessage() {
   console.log("Nex SMS index: ", processNewSMSIndex);
-  console.log("newSMSQueue: ", newSMSQueue);
+  console.log("SMSInQueue: ", newSMSQueue);
 
   if (newSMSQueue.length === 0 || isSendingSMS) {
     return;
