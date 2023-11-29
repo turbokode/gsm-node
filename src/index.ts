@@ -346,6 +346,8 @@ async function processNextMessage() {
         addToSendQueue(newUserMessage.phoneNumber, message);
       }
     }
+  } else {
+    newSMSQueue.splice(processNewSMSIndex, 1);
   }
 }
 
