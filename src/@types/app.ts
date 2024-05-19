@@ -24,7 +24,15 @@ export interface GSM_Response<T> {
   data: T[];
 }
 
-export interface SMS_ResponseType {
+export interface INewSMSQueue {
+  indicator: string;
+  isExecuted: Boolean;
+}
+
+//NEW VERTION
+export type IJobs = "NewSMS" | "SendSMS";
+
+export interface SMSResponseType {
   sender: string;
   message: string;
   index: number;
@@ -39,9 +47,4 @@ export interface SMSHeader {
   smsc: string;
   smscType: string;
   smscPlan: string;
-}
-
-export interface INewSMSQueue {
-  indicator: string;
-  isExecuted: Boolean;
 }
