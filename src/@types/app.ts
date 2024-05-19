@@ -32,14 +32,16 @@ export interface INewSMSQueue {
 //NEW VERTION
 export type IJobs = "NewSMS" | "SendSMS";
 
+export type GSMPortType = Object;
+
 export interface SMSResponseType {
   sender: string;
   message: string;
-  index: number;
-  readStatus: boolean;
-  msgStatus: number;
-  dateTimeSent: string;
-  header: SMSHeader;
+  index?: number;
+  readStatus?: boolean;
+  msgStatus?: number;
+  dateTimeSent?: string;
+  header?: SMSHeader;
 }
 
 export interface SMSHeader {

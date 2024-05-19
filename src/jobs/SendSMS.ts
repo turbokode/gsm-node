@@ -1,12 +1,12 @@
-import { MessageType } from "../@types/app";
+import { GSMPortType, SMSResponseType } from "../@types/app";
 
-interface IProps extends MessageType {
-  gsmPort: Object;
+interface IProps extends SMSResponseType {
+  gsmPort: GSMPortType;
 }
 
 export default {
   key: "SendSMS",
   async handle({ data }: { data: IProps }) {
-    console.log("QUEUE NEW SMS: ", data);
+    console.log("QUEUE SEND SMS: ", data);
   },
 };

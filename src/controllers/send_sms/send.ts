@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import AppQueue from "../../libs/Queue";
 import { isStringEmpty } from "../../resources/isEmpty";
 import { isValidPhoneNumber } from "../../resources/isValidValue";
 
@@ -12,8 +13,16 @@ export async function send(req: Request, res: Response) {
 
     if (isValidPhoneNumber(phoneNumber)) throw new Error("Ivalid phoneNumber!");
 
+    if (!req.gsmPort) throw new Error("GSM port not found!");
+
     //ADD to queue send sms
     console.log("Pedido de envio de sms:", { phoneNumber, message });
+
+    await AppQueue.add("SendSMS", {
+      message,
+      sender: phoneNumber,
+      gsmPort: req.gsmPort,
+    });
 
     res.json({ message: "success" });
   } catch (err) {

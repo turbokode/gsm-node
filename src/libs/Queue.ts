@@ -1,10 +1,14 @@
 import Queue from "bull";
-import { IJobs, SMSResponseType } from "../@types/app";
+import { GSMPortType, IJobs, SMSResponseType } from "../@types/app";
 import redisConfig from "../config/redis";
 import * as jobs from "../jobs";
 
 const host = redisConfig.host;
 const port = redisConfig.port;
+
+interface IProps extends SMSResponseType {
+  gsmPort?: GSMPortType;
+}
 
 const queues = Object.values(jobs).map((job) => ({
   bull: new Queue(job.key, `redis://${host}:${port}`),
@@ -12,9 +16,9 @@ const queues = Object.values(jobs).map((job) => ({
   handle: job.handle,
 }));
 
-export default {
+const AppQueue = {
   queues,
-  add(name: IJobs, data: SMSResponseType) {
+  add(name: IJobs, data: IProps) {
     const queue = this.queues.find((q) => q.name === name);
 
     return queue?.bull.add(data);
@@ -23,7 +27,11 @@ export default {
     return this.queues.forEach((q) => {
       q.bull.process(q.handle);
 
-      q.bull.on("failed", (job, err) => {});
+      q.bull.on("failed", (job, err) => {
+        console.error(job, err);
+      });
     });
   },
 };
+
+export default AppQueue;
