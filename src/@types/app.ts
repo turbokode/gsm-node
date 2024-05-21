@@ -24,14 +24,24 @@ export interface GSM_Response<T> {
   data: T[];
 }
 
-export interface SMS_ResponseType {
+export interface INewSMSQueue {
+  indicator: string;
+  isExecuted: Boolean;
+}
+
+//NEW VERTION
+export type IJobs = "NewSMS" | "SendSMS";
+
+export type GSMPortType = Object;
+
+export interface SMSResponseType {
   sender: string;
   message: string;
-  index: number;
-  readStatus: boolean;
-  msgStatus: number;
-  dateTimeSent: string;
-  header: SMSHeader;
+  index?: number;
+  readStatus?: boolean;
+  msgStatus?: number;
+  dateTimeSent?: string;
+  header?: SMSHeader;
 }
 
 export interface SMSHeader {
@@ -41,7 +51,9 @@ export interface SMSHeader {
   smscPlan: string;
 }
 
-export interface INewSMSQueue {
-  indicator: string;
-  isExecuted: Boolean;
+export interface ISendSMSData {
+  messageId: string;
+  message: string;
+  recipient: string;
+  response: "Message Successfully Sent" | "Successfully Sent to Message Queue";
 }
