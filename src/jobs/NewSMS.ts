@@ -7,7 +7,7 @@ export default {
     console.log("QUEUE NEW SMS: ", data);
 
     await api.post("/system_gate_way", {
-      phoneNumber: data.sender,
+      phoneNumber: `+${data.sender}`,
       content: data.message,
     });
   },

@@ -19,6 +19,7 @@ const queues = Object.values(jobs).map((job) => ({
 const AppQueue = {
   queues,
   add(name: IJobs, data: IProps) {
+    // console.log({ name, ...data });
     const queue = this.queues.find((q) => q.name === name);
 
     return queue?.bull.add(data);

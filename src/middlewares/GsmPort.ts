@@ -2,19 +2,21 @@ import { NextFunction, Request, Response } from "express";
 import { GSMPortType } from "../@types/app";
 
 export class GsmPort {
-  #port: GSMPortType;
+  gsmPort: GSMPortType;
 
-  constructor(port: GSMPortType) {
-    this.#port = port;
+  constructor(gsmPort: GSMPortType) {
+    this.gsmPort = gsmPort;
   }
 
   handle(req: Request, res: Response, next: NextFunction) {
-    if (!this.#port) {
+    console.log("PORT: ", this.gsmPort);
+
+    if (!this.gsmPort) {
       console.error("GSM port canot be null!");
       return;
     }
 
-    req.gsmPort = this.#port;
+    req.gsmPort = this.gsmPort;
 
     next();
   }

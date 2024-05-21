@@ -50,3 +50,10 @@ export interface SMSHeader {
   smscType: string;
   smscPlan: string;
 }
+
+export interface ISendSMSData {
+  messageId: string;
+  message: string;
+  recipient: string;
+  response: "Message Successfully Sent" | "Successfully Sent to Message Queue";
+}
