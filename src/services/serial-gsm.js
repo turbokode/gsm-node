@@ -10,7 +10,7 @@ const options = {
   xon: false,
   xoff: false,
   xany: false,
-  autoDeleteOnReceive: false,
+  autoDeleteOnReceive: true,
   pin: "",
   customInitCommand: "",
   cnmiCommand: "AT+CNMI=2,1,0,2,1",
@@ -45,6 +45,18 @@ export class GSMModem {
     this.modem.on("onNewMessage", (message) => {
       // console.log("SMS recebido:", message);
       callBack(message);
+    });
+  }
+
+  deleteSMS(messageObj, callBack) {
+    return new Promise((resolve, reject) => {
+      this.modem.deleteMessage(messageObj, (data, err) => {
+        if (err) return reject(false);
+
+        resolve(true);
+
+        callBack && callBack(data);
+      });
     });
   }
 
@@ -104,4 +116,17 @@ export class GSMModem {
         response: 'Message Successfully Sent'
       }
     }
+
+     Send sms callBack:  {
+1|GSM Ctrl  |   status: 'fail',
+1|GSM Ctrl  |   request: 'SendSMS',
+1|GSM Ctrl  |   data: {
+1|GSM Ctrl  |     messageId: 'UheWDVqbXtSjTddn2JsWroW82',
+1|GSM Ctrl  |     message: 'Para ativar o dispositivo envie uma mensagem com a estrutura correta!\n' +
+1|GSM Ctrl  |       '--\n' +
+1|GSM Ctrl  |       'Ajuda: .',
+1|GSM Ctrl  |     recipient: '+258844825696',
+1|GSM Ctrl  |     response: 'Message Failed ERROR'
+1|GSM Ctrl  |   }
+1|GSM Ctrl  | }
    */

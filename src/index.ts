@@ -1,8 +1,8 @@
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import { SMSResponseType } from "./@types/app";
-import AppQueue from "./libs/Queue";
+import { handleNewSMS } from "./handlers/newSMS";
+import { handleOnMemoy } from "./handlers/onMemory";
 import appRoutes from "./routes";
 import { GSMModem } from "./services/serial-gsm";
 
@@ -16,12 +16,8 @@ app.use(cors());
 
 appRoutes(app);
 
-const handleNewSMS = async (sms: SMSResponseType[]) => {
-  // console.log("NEW SMS: ", sms);
-  await AppQueue.add("NewSMS", sms[0]);
-};
-
-gsmModem.OnMemoriSMS(handleNewSMS);
+gsmModem.OnNewSMS(handleNewSMS);
+gsmModem.OnMemoriSMS(handleOnMemoy);
 
 gsmModem.checkIsReady().finally(() => {
   app.listen(port, async () => {
