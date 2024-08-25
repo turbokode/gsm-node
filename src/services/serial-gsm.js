@@ -2,7 +2,7 @@ import SerialPortGSM from "serialport-gsm";
 import { delay } from "../resources/delay";
 
 const options = {
-  baudRate: 115200,
+  baudRate: 19200,
   dataBits: 8,
   stopBits: 1,
   parity: "none",
@@ -10,7 +10,7 @@ const options = {
   xon: false,
   xoff: false,
   xany: false,
-  autoDeleteOnReceive: true,
+  autoDeleteOnReceive: false,
   pin: "",
   customInitCommand: "",
   cnmiCommand: "AT+CNMI=2,1,0,2,1",
@@ -66,7 +66,7 @@ export class GSMModem {
    * @param {string} message A mensagem a ser enviada
    * @param {Function} callBack funcao de callback que sera chamada depois que enviar a menssage. O callback 'e chamado 2 vezes, a primeira para informar que a menssagem esta na fila de envio e a segunda vez para informar se foi enviada com sucesso ou nao
    */
-  async senSMS(phoneNumber, message, callBack) {
+  async sendSMS(phoneNumber, message, callBack) {
     if (!this.isReady) await this.checkIsReady();
 
     this.modem.sendSMS(phoneNumber, message, false, callBack);

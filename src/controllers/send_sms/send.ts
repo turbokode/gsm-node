@@ -1,35 +1,34 @@
 import { Request, Response } from "express";
+import { z } from "zod";
 import { gsmModem } from "../..";
 import { GSM_Response, ISendSMSData } from "../../@types/app";
-import { isStringEmpty } from "../../resources/isEmpty";
 import { isValidPhoneNumber } from "../../resources/isValidValue";
 
+const sendSMSSchema = z.object({
+  phoneNumber: z.string().refine(isValidPhoneNumber, {
+    message: "Invalid phone number!",
+  }),
+  message: z.string().min(1, "Message content is empty!"),
+});
+
 export async function send(req: Request, res: Response) {
-  const { phoneNumber, message } = req.body;
-
   try {
-    if (isStringEmpty(phoneNumber)) throw new Error("Phone number is empty!");
+    const { phoneNumber, message } = sendSMSSchema.parse(req.body);
 
-    if (isStringEmpty(message)) throw new Error("Message content is empty!");
+    if (!gsmModem.isReady) {
+      throw new Error("GSM modem is not ready!");
+    }
 
-    if (!isValidPhoneNumber(phoneNumber))
-      throw new Error("Ivalid phoneNumber!");
+    await gsmModem.sendSMS(phoneNumber, message, callBack);
 
-    if (!gsmModem.isReady) throw new Error("GSM modem is not ready!");
-
-    await gsmModem.senSMS(phoneNumber, message, callBack);
-
-    res.json({ message: "success" });
+    return res.json({ message: "SMS sent successfully!" });
   } catch (err) {
-    console.log("Error when try to send SMS: ", err);
-    /**
-     * Geral log do erro e enviar uma notificação para o admin!
-     */
+    console.error("Error when trying to send SMS:", err);
 
-    res.status(500).json({ message: err });
+    return res.status(500).json({ message: err instanceof Error ? err.message : "An unexpected error occurred" });
   }
 }
 
 const callBack = (data: GSM_Response<ISendSMSData>) => {
-  console.log("Send sms callBack: ", data);
+  console.log("Send SMS callback:", data);
 };

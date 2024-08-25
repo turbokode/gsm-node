@@ -28,6 +28,7 @@
     "express": "^4.18.2",
     "onoff": "^6.0.3",
     "serialport": "^11.0.0",
-    "serialport-gsm": "^4.0.1"
+    "serialport-gsm": "^4.0.1",
+    "zod": "^3.23.8"
   }
 }
