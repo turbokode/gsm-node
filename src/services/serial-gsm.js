@@ -10,7 +10,7 @@ const options = {
   xon: false,
   xoff: false,
   xany: false,
-  autoDeleteOnReceive: false,
+  autoDeleteOnReceive: true,
   pin: "",
   customInitCommand: "",
   cnmiCommand: "AT+CNMI=2,1,0,2,1",

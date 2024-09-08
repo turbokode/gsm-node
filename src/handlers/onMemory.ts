@@ -1,3 +1,4 @@
+import { gsmModem } from "..";
 import { SMSResponseType } from "../@types/app";
 import AppQueue from "../libs/Queue";
 
@@ -6,6 +7,6 @@ export const handleOnMemoy = async (sms: SMSResponseType[]) => {
   sms.forEach(async (m) => {
     await AppQueue.add("NewSMS", m);
 
-    // await gsmModem.deleteSMS(m);
+    await gsmModem.deleteSMS(m);
   });
 };
